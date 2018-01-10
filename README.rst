@@ -28,7 +28,8 @@
   import requests
   import json
   
-  data = {'uid': "44929"}
+  data = {}
+  data['uid'] = "44929"
   url = 'http://api.utwo.tech/profile'
   page = requests.post(url, data = data).text
   data = json.loads(page)
