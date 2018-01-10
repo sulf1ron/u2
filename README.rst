@@ -19,7 +19,7 @@
 ============
 协议标准: HTTP POST
 
-接口地址: `profile API <http://api.utwo.tech/profile>`
+接口地址: `profile API <站内查看>`
 
 请求样例：(python)
 
@@ -30,7 +30,7 @@
   
   data = {}
   data['uid'] = "44929"
-  url = 'http://api.utwo.tech/profile'
+  url = 'http://'
   page = requests.post(url, data = data).text
   data = json.loads(page)
   
