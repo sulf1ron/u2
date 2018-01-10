@@ -10,7 +10,7 @@
 介绍
 ============
 
-基于 `Beautiful Soup <https://www.crummy.com/software/BeautifulSoup/>`_ 与 `Flask <http://flask.pocoo.org/>`_ 开发的 `U2分享园@动漫花园 <https://u2.dmhy.org/>`_ API
+基于 `Beautiful Soup <https://www.crummy.com/software/BeautifulSoup/>`_ 与 `Flask <http://flask.pocoo.org/>`_ 开发的 `二娘 <https:///>`_ API
 
 可以获取个人数据、种子信息及站点状况（后两者开发中）
 
