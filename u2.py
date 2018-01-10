@@ -27,6 +27,9 @@ def u2_profile(uid):
 	url = 'https://u2.dmhy.org/userdetails.php?id=' + uid
 	page = requests.get(url, cookies = cookie).text
 	soup = bs(page, 'lxml')
+	if '没有该ID的用户' in page:
+		data['error'] = '-1' # -1: 没有该ID的用户
+		return data
 	data['id'] = soup.find_all('bdo', {'dir': 'ltr'})[1].text
 	if '用户想要保护其隐私' in page:
 		data['error'] = '2' # 2: 用户隐私为强
