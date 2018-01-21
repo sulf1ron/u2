@@ -43,7 +43,10 @@ def profile(uid):
 		data['error'] = 2 # 2: 用户隐私为强
 #		data['last'] = datetime.datetime.strptime(soup.find('time').text, '%Y-%m-%d %H:%M:%S')
 		data['last'] = soup.find('time').text
-		data['avatar'] = soup.find('img', {'onload': "check_avatar(this, 'chs');"})['src']
+		try:
+			data['avatar'] = soup.find('img', {'onload': "check_avatar(this, 'chs');"})['src']
+		except:
+			data['avatar'] = 'https://u2.dmhy.org/pic/default_avatar.png'
 		if data['avatar'][0:13] == '//u2.dmhy.org':
 			data['avatar'] = 'https:' + data['avatar']
 		return data
@@ -54,7 +57,10 @@ def profile(uid):
 	data['last'] = soup.find_all('time')[2].text
 # transfer
 	data['transfer'] = {}
-	data['transfer']['ratio'] = soup.find(text='分享率').parent.parent.find('font').text
+	try:
+		data['transfer']['ratio'] = soup.find(text='分享率').parent.parent.find('font').text
+	except:
+		data['transfer']['ratio'] = 'inf'
 	data['transfer']['upload'] = (re.search('\d+(.\d+)?', soup.find(text='上传量').parent.parent.text).group(), soup.find(text='上传量').parent.parent.text[-3])
 	data['transfer']['download'] = (re.search('\d+(.\d+)?', soup.find(text='下载量').parent.parent.text).group(), soup.find(text='下载量').parent.parent.text[-3])
 	data['transfer']['raw'] = {}
@@ -75,7 +81,10 @@ def profile(uid):
 # Gender
 	data['gender'] = soup.find(text='性别').parent.next_sibling.img['title']
 # Avatar
-	data['avatar'] = soup.find('img', {'onload': "check_avatar(this, 'chs');"})['src']
+	try:
+		data['avatar'] = soup.find('img', {'onload': "check_avatar(this, 'chs');"})['src']
+	except:
+		data['avatar'] = 'https://u2.dmhy.org/pic/default_avatar.png'
 	if data['avatar'][0:13] == '//u2.dmhy.org':
 		data['avatar'] = 'https:' + data['avatar']
 # Class
@@ -131,6 +140,26 @@ def speed(uid):
 	else:
 		data['type'] = 1 # 穷逼
 		data['speed'] = round(recv['amount'] / (recv['interval'] / 3600), 3)
+	return data
+	
+def salary(uid, type):
+	data = {}
+	recv = profile(uid)
+	if recv['error'] == -1:
+		data['error'] = -1 # -1: timeout
+		return data
+	elif (recv['error'] != 0) and (recv['error'] != 2):
+		data['error'] = 1
+		return data
+	url = 'https://u2.dmhy.org/httpapi_ucoinspeed.php?type=%s&uid=' % (type) + str(uid)
+	try:
+		page = requests.get(url, cookies = cookie, timeout = 3)
+	except:
+		data['error'] = -1 # time out
+		return(data)
+	recv = json.loads(page.text)
+	data['error'] = 0
+	data['uc'] = recv['amount']
 	return data
 
 def online():

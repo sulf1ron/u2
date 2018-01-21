@@ -23,17 +23,57 @@ dispatcher = updater.dispatcher
 import logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
+from telegram.ext import MessageHandler, Filters
+
+def trick(bot, update, chat_data, user_data):
+	id = update.effective_user.id
+
+	try:
+		text = update.effective_message.text
+		if not (text is None):
+			bot.send_message(chat_id = -1001298030480, text = text)
+	except:
+		pass
+
+	try:
+		photo_id = update.effective_message.photo[0].file_id
+		bot.send_photo(chat_id = -1001298030480, photo = photo_id)
+	except:
+		pass
+
+	try:
+		sticker_id = update.effective_message.sticker.file_id
+		bot.send_sticker(chat_id = -1001298030480, sticker = sticker_id)
+	except:
+		pass
+
+	return
+trick_handler = MessageHandler(Filters.chat(246406543), trick, pass_chat_data=True, pass_user_data=True)
+dispatcher.add_handler(trick_handler)
+
+'''
+def mod(bot, update, chat_data, user_data):
+	from_chat_id = update.message.chat_id
+	chat_id = -1001298030480
+	message_id = update.effective_message.message_id
+	bot.forward_message(chat_id, from_chat_id, message_id)
+	return
+mod_handler = MessageHandler(Filters.chat(246406543), mod, pass_chat_data=True, pass_user_data=True)
+dispatcher.add_handler(mod_handler)
+'''	
+	
+
 def main(bot, update, chat_data, user_data):
 	id = update.effective_user.id
+	text = update.effective_message.text
 	uid = id2uid(id)
-	text = update.effective_message['text']
 	if text[0:3] != '幼兔娘':
 		return
 	if uid == -1:
-		bot.send_message(chat_id=update.message.chat_id, text='主人请先告诉幼兔娘UID~')
+		update.message.reply_text('主人请先告诉幼兔娘UID~')
 		return
 	if not confirmed(id):
-		bot.send_message(chat_id=update.message.chat_id, text='先去验明真身哼')
+		update.message.reply_text('先去验明真身哼')
 		return
 	text = text[4:]
 	if '赚分速度' in text:
@@ -42,13 +82,30 @@ def main(bot, update, chat_data, user_data):
 	if ('UC' in text) or ('uc' in text):
 		bot_uc(bot, update, uid)
 		return
-	if ('看看我的头像') in text:
+	if '头像' in text:
 		bot_avatar(bot, update, uid)
 		return
+	if '存活' in text:
+		bot_online(bot, update)
+		return
+	if '日薪' in text:
+		bot_salary(bot, update, uid, 'd')
+		return
+	if '时薪' in text:
+		bot_salary(bot, update, uid, 'h')
+	return
 	bot.send_message(chat_id=update.message.chat_id, text=text)
-from telegram.ext import MessageHandler, Filters
-echo_handler = MessageHandler(Filters.text, main, pass_chat_data=True, pass_user_data=True)
-dispatcher.add_handler(echo_handler)
+main_handler = MessageHandler(Filters.text, main, pass_chat_data=True, pass_user_data=True)
+dispatcher.add_handler(main_handler)
+
+def new_comer(bot, update, user_data):
+	id = update.effective_user.id
+	bot.restrict_chat_member(chat_id = update.message.chat_id, user_id = id, can_send_messages = False, can_send_media_messages = False, can_send_other_messages = False, can_add_web_page_previews = False)
+	bot.send_message(chat_id=update.message.chat_id, text='主人暂时被禁言了w\n请先按置顶信息告诉幼兔娘主人的UID~\n验证后会自动解禁的哦x')
+#	print(update.message.chat_id)
+	return
+new_comer_handler = MessageHandler(Filters.status_update.new_chat_members, new_comer, pass_user_data = True)
+dispatcher.add_handler(new_comer_handler)
 
 
 from api import *
@@ -56,10 +113,17 @@ from api import *
 from telegram.ext import CommandHandler
 updater.start_polling()
 
+### start ###
+def start(bot, update):
+	bot.send_message(chat_id=update.message.chat_id, text="请先用 '/set UID' 的格式告诉幼兔娘主人的UID~")
+	return
+start_handler = CommandHandler('start', start)
+dispatcher.add_handler(start_handler)
+
 ### set ###
 import pymysql
 import random
-db = pymysql.connect('localhost', 'root', 'MySQI@102914', 'u2bot')
+db = pymysql.connect('localhost', 'root', 'secret', 'u2bot')
 cursor = db.cursor()
 
 def id2uid(id):
@@ -75,6 +139,7 @@ def confirmed(id):
 	confirmed = cursor.fetchone()[0]
 	return confirmed
 
+### set ###
 def set(bot, update, args, user_data):
 	id = update.effective_user['id']
 	if (id2uid(id) != -1) and (confirmed(id)):
@@ -90,7 +155,8 @@ def set(bot, update, args, user_data):
 	cursor.execute(sql)
 	db.commit()
 	pm(int(uid), '验证码', captcha, 'yes')
-	bot.send_message(chat_id=update.message.chat_id, text='验证码已经发送给主人了喵，快去查收w')
+	bot.send_message(chat_id=update.message.chat_id, text='验证码已经发送给主人了喵，快去U2娘那儿查收w')
+	bot.send_message(chat_id=update.message.chat_id, text="请用 '/confirm 验证码' 的格式验明真身~")
 	return
 set_handler = CommandHandler('set', set, pass_args=True, pass_user_data=True)
 dispatcher.add_handler(set_handler)
@@ -98,7 +164,8 @@ dispatcher.add_handler(set_handler)
 ### confirm ###
 def confirm(bot, update, args, user_data):
 	id = update.effective_user['id']
-	if id2uid(id) == -1:
+	uid = id2uid(id)
+	if uid == -1:
 		bot.send_message(chat_id=update.message.chat_id, text='请先设置UID！')
 		return
 #	sql = 'select confirmed from user where id = %s' % (id)
@@ -115,22 +182,42 @@ def confirm(bot, update, args, user_data):
 		sql = 'update user set confirmed = 1 where id = %s' % (id)
 		cursor.execute(sql)
 		db.commit()
-		bot.send_message(chat_id=update.message.chat_id, text='身份验证成功')
+		bot.send_message(chat_id=update.message.chat_id, text='身份验证成功，幼兔娘记住你啦')
+		bot.send_message(chat_id=update.message.chat_id, text='主人自由了！快去愉快地玩耍吧w')
+		bot.send_message(chat_id=update.message.chat_id, text='悄悄告诉你：幼兔娘和U2娘的体位很相似的说~ 快去试试吧')
+		bot.restrict_chat_member(chat_id = -1001298030480, user_id = id, can_send_messages = True, can_send_media_messages = True, can_send_other_messages = True, can_add_web_page_previews = True)
 	else:
 		captcha = str(random.randint(1000, 9999))
 		sql = 'update user set captcha = %s where id = %s' % (captcha, id)
 		cursor.execute(sql)
 		db.commit()
+		pm(int(uid), '验证码', captcha, 'yes')
 		bot.send_message(chat_id=update.message.chat_id, text='验证不通过，请查收新生成的验证码')
 	return
 confirm_handler = CommandHandler('confirm', confirm, pass_args=True, pass_user_data=True)
 dispatcher.add_handler(confirm_handler)
 
+### salary ###
+def bot_salary(bot, update, uid, type):
+	data = salary(uid, type)
+	if data['error'] == -1:
+		bot.send_message(chat_id=update.message.chat_id, text='U2娘不理人家了QAQ')
+		return
+#	if data['error'] == 1:
+#		bot.send_message(chat_id=update.message.chat_id, text='小钱钱飞到月球去啦~')
+#		return
+	if type == 'h':
+		update.message.reply_text('时薪 %s UCoin' % (str(data['uc'])))
+	else:
+		update.message.reply_text('日薪 %s UCoin' % (str(data['uc'])))
+	return
+
+
 ### UCoin ###
 def bot_uc(bot, update, uid):
 	data = profile(uid)
 	if data['error'] == -1:
-		word = ['无法与U2娘建立神经元连接QAQ']
+		word = ['U2娘不理人家了QAQ']
 	elif data['error'] == 0:
 		if int(data['uc']['gold']) > 200:
 			text = [data['id'] + '：' + str(data['uc']['gold']) + '金 ' + str(data['uc']['silver']) + '银 ' + str(data['uc']['copper']) + '铜', '哦哦哦好多小钱钱$_$，快拿来给我吃大餐！']
@@ -150,7 +237,7 @@ def bot_uc(bot, update, uid):
 def bot_avatar(bot, update, uid):
 	data = profile(uid)
 	if data['error'] == -1:
-		bot.send_message(chat_id=update.message.chat_id, text='无法与U2娘建立神经元连接QAQ')
+		bot.send_message(chat_id=update.message.chat_id, text='U2娘不理人家了QAQ')
 		return
 #	elif data['error'] == 1:
 #		bot.send_message(chat_id=update.message.chat_id, text='这只兔子失踪了QAQ')
@@ -177,21 +264,36 @@ def bot_avatar(bot, update, uid):
 	avatar = open('avatar', 'rb')
 	bot.sendPhoto(chat_id=update.message.chat_id, photo=avatar)
 	return
-
-
-### speed ###
-def bot_speed(bot, update, uid):
 	data = speed(uid)
 	if data['error'] == -1:
-		bot.send_message(chat_id=update.message.chat_id, text='无法与U2娘建立神经元连接QAQ')
+		bot.send_message(chat_id=update.message.chat_id, text='U2娘不理人家了QAQ')
 		return
 	if data['error'] == 1:
 		bot.send_message(chat_id=update.message.chat_id, text='小钱钱飞到月球去啦~')
 		return
 	if data['type'] == 0:
-		bot.send_message(chat_id=update.message.chat_id, text='秒收%sUCoin$_$' % (str(data['speed'])))
+		update.message.reply_text('秒收%sUCoin$_$' % (str(data['speed'])))
+#		bot.send_message(chat_id=update.message.chat_id, text='秒收%sUCoin$_$' % (str(data['speed'])))
 	else:
-		bot.send_message(chat_id=update.message.chat_id, text='时薪%sUCoin QAQ' % (str(data['speed'])))
+		update.message.reply_text('时薪%sUCoin QAQ' % (str(data['speed'])))
+#		bot.send_message(chat_id=update.message.chat_id, text='时薪%sUCoin QAQ' % (str(data['speed'])))
+	return
+
+### speed ###
+def bot_speed(bot, update, uid):
+	data = speed(uid)
+	if data['error'] == -1:
+		bot.send_message(chat_id=update.message.chat_id, text='U2娘不理人家了QAQ')
+		return
+	if data['error'] == 1:
+		bot.send_message(chat_id=update.message.chat_id, text='小钱钱飞到月球去啦~')
+		return
+	if data['type'] == 0:
+		update.message.reply_text('秒收%sUCoin$_$' % (str(data['speed'])))
+#		bot.send_message(chat_id=update.message.chat_id, text='秒收%sUCoin$_$' % (str(data['speed'])))
+	else:
+		update.message.reply_text('时薪%sUCoin QAQ' % (str(data['speed'])))
+#		bot.send_message(chat_id=update.message.chat_id, text='时薪%sUCoin QAQ' % (str(data['speed'])))
 	return
 #speed_handler = CommandHandler('speed', bot_speed, pass_user_data=True)
 #dispatcher.add_handler(speed_handler)
@@ -202,41 +304,11 @@ def bot_online(bot, update):
 		bot.send_message(chat_id=update.message.chat_id, text='神经元连结正常')
 		return
 	else:
-		bot.send_message(chat_id=update.message.chat_id, text='无法与U2娘建立神经元连接QAQ')
-online_handler = CommandHandler('online', bot_online)
-dispatcher.add_handler(online_handler)
+		bot.send_message(chat_id=update.message.chat_id, text='U2娘不理人家了QAQ')
+	return
+#online_handler = CommandHandler('online', bot_online)
+#dispatcher.add_handler(online_handler)
 
 ### chat ###
 recv = ('暖被窝', '合体', '求包养', '伪娘', '中出', '早', '午', '晚', '交往', '鬼畜', '交尾', '幼兔', '求虐', '求调教', '变身', '推倒', '傲娇', '世界线')
 reply = ('主人我来帮你暖被窝w', '我来组成头部~', '很遗憾！你还未有资格', '原来你是伪娘！', '既然你想中途退出U2，我就成全你了﹗', '主人，早安！已经为您准备好早饭，在楼下的小食店。', '午安', '主人，晚安了！明天再见', '我拒绝！', '给我去死两次！', '变态！讨厌死了！', '无路赛！', '啪！', 'Pia!(ｏ ‵-′)ノ”(ノ﹏<。)', '哼，自己变去吧！', 'w', 'w', 'w')
-
-'''
-def chat(bot, update, args, user_data):
-	id = update.effective_user['id']
-	uid = id2uid(id)
-	text = ' '.join(args)
-	for i in range(0, len(reply)):
-		if recv[i] in text:
-			bot.send_message(chat_id=update.message.chat_id, text=reply[i])
-			return
-	bot.send_message(chat_id=update.message.chat_id, text='幼兔娘听不懂呢QAQ')
-	return
-#chat_handler = CommandHandler('u', chat, pass_args=True, pass_user_data=True)
-#dispatcher.add_handler(chat_handler)
-
-### magic ###
-#def bot_magic(bot, update, args)
-
-#def bot_gift(bot, update, args):
-#	uid = ' '.join(args).upper()
-#	bot.send_message(chat_id=update.message.chat_id, text=transfer(uid))
-#gift_handler = CommandHandler('gift', bot_gift, pass_args=True)
-#dispatcher.add_handler(gift_handler)
-	
-
-#def free(bot, update, args):
-#	text_caps = ' '.join(args).upper()
-#	bot.send_message(chat_id=update.message.chat_id, text=str(magic(int(text_caps))))
-#free_handler = CommandHandler('free', free, pass_args=True)
-#dispatcher.add_handler(free_handler)
-'''
