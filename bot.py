@@ -93,8 +93,12 @@ def main(bot, update, chat_data, user_data):
 		return
 	if '时薪' in text:
 		bot_salary(bot, update, uid, 'h')
+		return
+	if ('糖' in text) or ('新人' in text):
+		bot_gift(bot, update, uid)
+		return
+#	bot.send_message(chat_id=update.message.chat_id, text=text)
 	return
-	bot.send_message(chat_id=update.message.chat_id, text=text)
 main_handler = MessageHandler(Filters.text, main, pass_chat_data=True, pass_user_data=True)
 dispatcher.add_handler(main_handler)
 
@@ -116,6 +120,7 @@ updater.start_polling()
 ### start ###
 def start(bot, update):
 	bot.send_message(chat_id=update.message.chat_id, text="请先用 '/set UID' 的格式告诉幼兔娘主人的UID~")
+	bot.send_message(chat_id=update.message.chat_id, text="比如 '/set 44929'")
 	return
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
@@ -138,6 +143,17 @@ def confirmed(id):
 	cursor.execute(sql)
 	confirmed = cursor.fetchone()[0]
 	return confirmed
+	
+def isnewbie(uid):
+	sql = 'select newbie from user where uid = %s' % (uid)
+	cursor.execute(sql)
+	newbie = cursor.fetchone()[0]
+	return newbie
+
+def old(uid):
+	sql = 'update user set newbie = 0 where uid = %s' % (uid)
+	cursor.execute(sql)
+	return
 
 ### set ###
 def set(bot, update, args, user_data):
@@ -184,6 +200,7 @@ def confirm(bot, update, args, user_data):
 		db.commit()
 		bot.send_message(chat_id=update.message.chat_id, text='身份验证成功，幼兔娘记住你啦')
 		bot.send_message(chat_id=update.message.chat_id, text='主人自由了！快去愉快地玩耍吧w')
+		bot.send_message(chat_id=update.message.chat_id, text="群聊里输入 '幼兔娘 新人礼包' 获取幼兔娘的福利一份~")
 		bot.send_message(chat_id=update.message.chat_id, text='悄悄告诉你：幼兔娘和U2娘的体位很相似的说~ 快去试试吧')
 		bot.restrict_chat_member(chat_id = -1001298030480, user_id = id, can_send_messages = True, can_send_media_messages = True, can_send_other_messages = True, can_add_web_page_previews = True)
 	else:
@@ -309,6 +326,20 @@ def bot_online(bot, update):
 #online_handler = CommandHandler('online', bot_online)
 #dispatcher.add_handler(online_handler)
 
+### gift ###
+def bot_gift(bot, update, uid):
+	if isnewbie(uid):
+		if transfer(uid, 23333, '幼兔娘的新人礼物w'):
+			update.message.reply_text('礼包已发送w')
+			old(uid)
+		else:
+			update.message.reply_text('请五分钟后再试~')
+	else:
+		update.message.reply_text('不要贪得无厌哼')
+	return
+
+'''
 ### chat ###
 recv = ('暖被窝', '合体', '求包养', '伪娘', '中出', '早', '午', '晚', '交往', '鬼畜', '交尾', '幼兔', '求虐', '求调教', '变身', '推倒', '傲娇', '世界线')
 reply = ('主人我来帮你暖被窝w', '我来组成头部~', '很遗憾！你还未有资格', '原来你是伪娘！', '既然你想中途退出U2，我就成全你了﹗', '主人，早安！已经为您准备好早饭，在楼下的小食店。', '午安', '主人，晚安了！明天再见', '我拒绝！', '给我去死两次！', '变态！讨厌死了！', '无路赛！', '啪！', 'Pia!(ｏ ‵-′)ノ”(ノ﹏<。)', '哼，自己变去吧！', 'w', 'w', 'w')
+'''

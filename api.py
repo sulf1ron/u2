@@ -201,3 +201,16 @@ def magic(id, utime, ur, dr, target):
 	url = 'https://u2.dmhy.org/promotion.php?action=magic&torrent=' + str(id)
 	page = requests.post(url, cookies = cookie, data = data)
 	return str(ucost)
+	
+def transfer(uid, amount, message):
+	data = {}
+	data['event'] = '1003'
+	data['recv'] = uid
+	data['amount'] = amount
+	data['message'] = message
+	url = 'https://u2.dmhy.org/mpshop.php'
+	page = requests.post(url, cookies = cookie, data = data).text
+	if '请勿进行频繁转账' in page:
+		return 0 # 成功
+	else:
+		return 1 # 失败
