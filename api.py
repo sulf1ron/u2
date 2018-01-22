@@ -10,8 +10,8 @@ import datetime
 import json
 
 # 设置数字格式
-#setlocale(LC_NUMERIC, 'en_US.UTF-8')
-setlocale(LC_NUMERIC, 'English_US')
+setlocale(LC_NUMERIC, 'en_US.UTF-8')
+#setlocale(LC_NUMERIC, 'English_US')
 
 # 通行证
 myuid = 44929
@@ -62,24 +62,24 @@ def profile(uid):
 # transfer
 	data['transfer'] = {}
 	try:
-		data['transfer']['ratio'] = float(soup.find(text='分享率').parent.parent.find('font').text)
+		data['transfer']['ratio'] = atof(soup.find(text='分享率').parent.parent.find('font').text)
 	except:
 		data['transfer']['ratio'] = 'inf'
-	data['transfer']['upload'] = (float(re.search('\d+(.\d+)?', soup.find(text='上传量').parent.parent.text).group()), soup.find(text='上传量').parent.parent.text[-3])
-	data['transfer']['download'] = (float(re.search('\d+(.\d+)?', soup.find(text='下载量').parent.parent.text).group()), soup.find(text='下载量').parent.parent.text[-3])
+	data['transfer']['upload'] = (atof(re.search('\d+(.\d+)?', soup.find(text='上传量').parent.parent.text).group()), soup.find(text='上传量').parent.parent.text[-3])
+	data['transfer']['download'] = (atof(re.search('\d+(.\d+)?', soup.find(text='下载量').parent.parent.text).group()), soup.find(text='下载量').parent.parent.text[-3])
 	data['transfer']['raw'] = {}
-	data['transfer']['raw']['upload'] = (float(re.search('\d+(.\d+)?', soup.find(text='实际上传').parent.parent.text).group()), soup.find(text='实际上传').parent.parent.text[-3])
-	data['transfer']['raw']['download'] = (float(re.search('\d+(.\d+)?', soup.find(text='实际下载').parent.parent.text).group()), soup.find(text='实际下载').parent.parent.text[-3])
+	data['transfer']['raw']['upload'] = (atof(re.search('\d+(.\d+)?', soup.find(text='实际上传').parent.parent.text).group()), soup.find(text='实际上传').parent.parent.text[-3])
+	data['transfer']['raw']['download'] = (atof(re.search('\d+(.\d+)?', soup.find(text='实际下载').parent.parent.text).group()), soup.find(text='实际下载').parent.parent.text[-3])
 # BT time
 	data['time'] = {}
-	data['time']['ratio'] = float(soup.find(text='做种/下载时间比率').parent.parent.find('font').text)
-	data['time']['seeding'] = float(re.search('\d+', soup.find(text='做种时间').parent.parent.text).group())
-	data['time']['leeching'] = float(re.search('\d+', soup.find(text='下载时间').parent.parent.text).group())
+	data['time']['ratio'] = atof(soup.find(text='做种/下载时间比率').parent.parent.find('font').text)
+	data['time']['seeding'] = atof(re.search('\d+', soup.find(text='做种时间').parent.parent.text).group())
+	data['time']['leeching'] = atof(re.search('\d+', soup.find(text='下载时间').parent.parent.text).group())
 # Network Bandwidth
 	try:
 		data['speed'] = {}
-		data['speed']['download'] = (float(soup.find('img', {'title': re.compile('下载:')})['title'][4:-4]), soup.find('img', {'title': re.compile('下载:')})['title'][-4].upper())
-		data['speed']['upload'] = (float(soup.find('img', {'title': re.compile('上传:')})['title'][4:-4]), soup.find('img', {'title': re.compile('上传:')})['title'][-4].upper())
+		data['speed']['download'] = (atof(soup.find('img', {'title': re.compile('下载:')})['title'][4:-4]), soup.find('img', {'title': re.compile('下载:')})['title'][-4].upper())
+		data['speed']['upload'] = (atof(soup.find('img', {'title': re.compile('上传:')})['title'][4:-4]), soup.find('img', {'title': re.compile('上传:')})['title'][-4].upper())
 	except:
 		data['speed'] = 'N/A'
 # Gender
