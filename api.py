@@ -16,12 +16,15 @@ import datetime
 import json
 
 # 设置数字格式
-setlocale(LC_NUMERIC, 'en_US.UTF-8')
-#setlocale(LC_NUMERIC, 'English_US')
+#setlocale(LC_NUMERIC, 'en_US.UTF-8')
+setlocale(LC_NUMERIC, 'English_US')
 
 # 通行证
 my = 44929
 cookies = dict(PHPSESSID='secret', nexusphp_u2='secret')
+
+def myuid():
+	return my
 
 def online():
 	url = 'https://u2.dmhy.org'
@@ -132,6 +135,18 @@ def id(uid):
 		return data['id'] # 有效
 	else:
 		return 1 # 无效
+
+def uc(uid):
+	data = profile(uid)
+	err = data['code']
+	if err == -1:
+		return -1 # 离线
+	elif err == 3:
+		return 2 # 隐私强
+	elif err == 0:
+		return data['uc']['amount']
+	else:
+		return 1 # 不存在
 
 def pm(uid, subject, body, save):
 	if not online():
