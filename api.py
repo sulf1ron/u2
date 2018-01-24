@@ -20,7 +20,7 @@ setlocale(LC_NUMERIC, 'en_US.UTF-8')
 #setlocale(LC_NUMERIC, 'English_US')
 
 # 通行证
-myuid = 44929
+my = 44929
 cookies = dict(PHPSESSID='secret', nexusphp_u2='secret')
 
 def online():
@@ -28,9 +28,9 @@ def online():
 	try:
 		page = requests.get(url, cookies = cookies, timeout = 3)
 	except:
-		return -1
-	finally:
 		return 0
+	finally:
+		return 1
 
 def profile(uid):
 	data = {}
@@ -39,7 +39,7 @@ def profile(uid):
 		data['code'] = 1 # uid 格式错误
 		return data
 
-	if online() == -1:
+	if not online():
 		data['code'] = -1 # U2 离线
 		return data
 		
@@ -119,9 +119,9 @@ def valid(uid):
 	if err == -1:
 		return -1 # 离线
 	elif (err == 0) or (err == 3):
-		return 0 # 有效
+		return 1 # 有效
 	else:
-		return 1 # 无效
+		return 0 # 无效
 		
 def id(uid):
 	data = profile(uid)
@@ -134,9 +134,9 @@ def id(uid):
 		return 1 # 无效
 
 def pm(uid, subject, body, save):
-	if online() == -1:
+	if not online():
 		return -1 # 离线
-	if valid(uid) == 1:
+	if not valid(uid):
 		return 1 # uid 不存在
 	url = 'https://u2.dmhy.org/takemessage.php'
 	data = {}
@@ -150,11 +150,11 @@ def pm(uid, subject, body, save):
 	
 def speed(uid):
 	data = {}
-	if online() == -1:
+	if not online():
 		data['code'] = -1 # -1: 离线
 		return data
 		
-	elif valid(uid) == 1:
+	elif not valid(uid):
 		data['code'] = 1 # uid 不存在
 		return data
 	data['code'] = 0
@@ -171,10 +171,10 @@ def speed(uid):
 	
 def salary(uid, type):
 	data = {}
-	if online() == -1:
+	if not online():
 		data['code'] = -1 # -1: 离线
 		return data
-	elif valid(uid) == 1:
+	elif not valid(uid):
 		data['code'] = 1 # uid 不存在
 		return data
 	data['code'] = 0
@@ -185,7 +185,7 @@ def salary(uid, type):
 	return data
 		
 def magic(id, utime, ur, dr, target):
-	if online() == -1:
+	if not online():
 		return -1
 	url = 'https://u2.dmhy.org/promotion.php?action=magic&torrent=' + str(id)
 	page = requests.get(url, cookies = cookies).text
@@ -220,9 +220,9 @@ def magic(id, utime, ur, dr, target):
 	
 def transfer(uid, amount, message):
 	data = {}
-	if online() == -1:
+	if not online():
 		return -1 # timeout
-	elif valid(uid) == 1:
+	elif not valid(uid):
 		return 1 # uid 不存在
 	data['event'] = '1003'
 	data['recv'] = uid
@@ -234,3 +234,11 @@ def transfer(uid, amount, message):
 		return 2 # 冷却期
 	else:
 		return 0 # 成功
+
+def get(url):
+	try:
+		data = requests.get(url, cookies = cookies, timeout = 3)
+	except:
+		return -1 # 离线
+	finally:
+		return data
