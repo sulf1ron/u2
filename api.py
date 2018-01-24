@@ -1,6 +1,12 @@
 #!/usr/bin python3
 # -*- coding:utf-8 -*-
 
+'''
+作者: 索尔
+邮箱: i@aalyp.cc
+UID:  44929
+'''
+
 from locale import *
 import requests
 import re
@@ -112,8 +118,18 @@ def valid(uid):
 	err = data['code']
 	if err == -1:
 		return -1 # 离线
-	if (err == 0) or (err == 3):
+	elif (err == 0) or (err == 3):
 		return 0 # 有效
+	else:
+		return 1 # 无效
+		
+def id(uid):
+	data = profile(uid)
+	err = data['code']
+	if err == -1:
+		return -1 # 离线
+	elif (err == 0) or (err == 3):
+		return data['id'] # 有效
 	else:
 		return 1 # 无效
 
