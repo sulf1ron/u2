@@ -1,3 +1,4 @@
+#!/usr/bin python3
 # -*- coding:utf-8 -*-
 
 '''
@@ -36,11 +37,11 @@ logger.addHandler(console_handler)
 logger.setLevel(logging.INFO)
 
 print('---参数设定---')
-uc = input('赠送UC量: ')
-while not isnum(uc):
+suc = input('赠送UC量: ')
+while not isnum(suc):
 	logger.error('格式不正确!')
-	uc = input('赠送UC量: ')
-uc = int(uc)
+	suc = input('赠送UC量: ')
+suc = int(suc)
 good = input('发给好人的信息: ')
 bad = input('发给坏人的信息: ')
 print('---参数设定完毕---')
@@ -72,7 +73,7 @@ for uid in user:
 		logger.error('U2娘抽风, 等待 5min 后重试... (尝试: %s)', str(retry))
 		sleep(300)
 		status = valid(uid)
-	if status == 0:
+	if status:
 		temp.add(uid)
 	else:
 		logger.warning('不正确的UID: %s', uid)
@@ -88,16 +89,31 @@ for uid in cheater:
 		logger.error('U2娘抽风, 等待 5min 后重试... (尝试: %s)', str(retry))
 		sleep(300)
 		status = valid(uid)
-	if status == 0:
+	if status:
 		temp.add(uid)
 	else:
 		logger.warning('不正确的UID: %s', uid)
 cheater = temp
 
-estimate = (len(user) + len(cheater)) * uc * 1.5 # 消耗UC
+estimate = (len(user) + len(cheater)) * ( suc * 1.5 + 100 ) # 消耗UC
 print('---预处理完毕---')
 logger.info('共发送%s份糖, 其中好人%s名, 坏人%s名' % (str(len(user) + len(cheater)), str(len(user)), str(len(cheater))))
 logger.info('预计消耗UC: %s' % (estimate))
+
+retry = 0
+myuc = uc(myuid())
+while myuc == -1:
+	retry += 1
+	total += 1
+	logger.error('U2娘抽风, 等待 5min 后重试... (尝试: %s)', str(retry))
+	sleep(300)
+	myuc = uc(myuid())
+if myuc > 2:
+	logger.info('当前UCoin存量: %s', str(myuc))
+	if myuc < estimate:
+		logger.critical('UCoin存量不足!')
+		print('---发糖脚本结束---')
+		exit()		
 
 print('---发糖进程开始---')
 logger.info('预热: 5分钟')
@@ -115,13 +131,13 @@ else:
 count = 1
 for uid in user:
 	retry = 0
-	status = transfer(uid, uc, good)
+	status = transfer(uid, suc, good)
 	while status == -1:
 		retry += 1
 		total += 1
 		logger.error('U2娘抽风, 等待 5min 后重试... (尝试: %s)', str(retry))
 		sleep(300)
-		status = transfer(uid, uc, good)
+		status = transfer(uid, suc, good)
 	if status == 0:
 		logger.info('%s/%s: %s', str(count), str(all), str(uid))
 	else:
@@ -139,13 +155,13 @@ else:
 count = 1
 for uid in cheater:
 	retry = 0
-	status = transfer(uid, uc, bad)
+	status = transfer(uid, suc, bad)
 	while status == -1:
 		retry += 1
 		total += 1
 		logger.error('U2娘抽风, 等待 5min 后重试... (尝试: %s)', str(retry))
 		sleep(300)
-		status = transfer(uid, uc, bad)
+		status = transfer(uid, suc, bad)
 	if status == 0:
 		logger.info('%s/%s: %s', str(count), str(all), str(uid))
 	else:
