@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>U2 Status</title>
+  <link rel="shortcut icon" href="/static/favicon.ico">
+  <style type="text/css">
+    html {
+        font-size: {{data['font']}}%;
+		height: 100%;
+    }
+    body {
+        background-color: rgba(251,191,222,0.3);
+        color: #000;
+        font-family: 'Palatino Linotype';
+        font-size: 1.4em;
+        line-height: 1.5;
+    }
+    .centered {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .emoji {
+      font-size: 9em;
+      text-align: center;
+    }
+    .title {
+      font-size: 3em;
+      text-align: center;
+      line-height: 0em;
+      color: grey;
+	  font-family: 'Palatino Linotype';
+    }
+    .text {
+      text-align: center;
+    }
+	footer {
+		background-color: rgba(251,191,222,0.3);
+        color: #000;
+        font-family: 'Palatino Linotype';
+        font-size: 1em;
+        line-height: 2;
+	}
+  </style>
+  <div class="waifu">
+    <div class="waifu"></div>
+    <canvas id="live2d" width="{{data['width']}}" height="{{data['height']}}" class="live2d"></canvas>
+  </div>
+</head>
+<body class="centered">
+  <p class="title">{{data['title']}}</p>
+  <p class="text">{{data['text']}}</p>
+</body>
+<footer>
+  <p class='text'>
+  <br>
+  更新时间: {{data['now']}}
+  <br>
+  响应时间: {{data['delay']}}s (香港)
+  <br>
+  响应时间: N/A (上海) 
+  <br>
+  <br>
+  <p>
+  <script src="/static/live2d.js"></script>
+  <script type="text/javascript">
+      loadlive2d("live2d", "/static/model.json?{{data['rand']}}");
+  </script>
+</footer>
+</html>
