@@ -46,21 +46,31 @@ good = input('发给好人的信息: ')
 bad = input('发给坏人的信息: ')
 print('---参数设定完毕---')
 
-pattern = re.compile('\d+')
 chain = input('请输入发糖串: \n')
-user = pattern.findall(chain)
 
-start = datetime.datetime.now()
 print('---发糖脚本开始---')
+start = datetime.datetime.now()
 logger.info('进程启动')
 total = 0 # 总尝试次数
 
-user = [int(x) for x in user]
+pattern = re.compile('\d{5}|\d{3}')
+bank = chain.split('<--')
+bank = [re.sub('\[em\d+]', '', text) for text in bank] # 去除 emoji
+user = []
+for text in bank:
+	uid = pattern.findall(text)
+	if uid != []:
+		user.append(int(uid[0]))
+
 cheater = Counter(user)
 cheater.subtract(set(user))
 cheater = set(list(cheater.elements())) # 重复发UID骗糖的坏人x
 user = set(user) - cheater # 正常领糖的好人w
 
+str1 = '{' + ', '.join(str(uid) for uid in user) + '}'
+str2 = '{' + ', '.join(str(uid) for uid in cheater) + '}'
+logger.info('好人: \n                                  %s', str1)
+logger.info('坏人: \n                                  %s', str2)
 # 预处理 UID 合法性
 print('---预处理UID---')
 temp = set()
@@ -97,6 +107,12 @@ cheater = temp
 
 estimate = (len(user) + len(cheater)) * ( suc * 1.5 + 100 ) # 消耗UC
 print('---预处理完毕---')
+
+str1 = '{' + ', '.join(str(uid) for uid in user) + '}'
+str2 = '{' + ', '.join(str(uid) for uid in cheater) + '}'
+logger.info('实发好人: \n                                      %s', str1)
+logger.info('实发坏人: \n                                      %s', str2)
+
 logger.info('共发送%s份糖, 其中好人%s名, 坏人%s名' % (str(len(user) + len(cheater)), str(len(user)), str(len(cheater))))
 logger.info('预计消耗UC: %s' % (estimate))
 
