@@ -14,14 +14,19 @@ import time
 from bs4 import BeautifulSoup as bs
 import datetime
 import json
+import configparser
 
 # 设置数字格式
 #setlocale(LC_NUMERIC, 'en_US.UTF-8')
 setlocale(LC_NUMERIC, 'English_US')
 
 # 通行证
-my = 44929
-cookies = dict(PHPSESSID='secret', nexusphp_u2='secret')
+conf = configparser.ConfigParser()
+conf.read('settings.ini')
+my = conf.get('profile', 'my')
+cookies = {}
+cookies['PHPSESSID'] = conf.get('cookies', 'PHPSESSID')
+cookies['nexusphp_u2'] = conf.get('cookies', 'nexusphp_u2')
 
 def myuid():
 	return my
