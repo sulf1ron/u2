@@ -1,0 +1,6 @@
+[profile]
+my = secret
+
+[cookies]
+PHPSESSID = secret
+nexusphp_u2 = secret
