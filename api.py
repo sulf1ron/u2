@@ -23,7 +23,7 @@ setlocale(LC_NUMERIC, 'English_US')
 # 通行证
 conf = configparser.ConfigParser()
 conf.read('settings.ini')
-my = conf.get('profile', 'my')
+my = int(conf.get('profile', 'my'))
 cookies = {}
 cookies['PHPSESSID'] = conf.get('cookies', 'PHPSESSID')
 cookies['nexusphp_u2'] = conf.get('cookies', 'nexusphp_u2')

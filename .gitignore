@@ -102,3 +102,6 @@ ENV/
 
 # secret
 settings.ini
+
+# log
+sweet.log
