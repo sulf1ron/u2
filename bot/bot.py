@@ -19,6 +19,12 @@ from drive import *
 
 # 过程
 
+def ismod(id):
+	if id in tgconf['admin']:
+		return 1
+	else:
+		return 0
+
 def start(bot, update):
 	bot.send_message(chat_id = update.message.chat_id, text = "请先用 '/set UID' 的格式告诉幼兔娘主人的UID~")
 	bot.send_message(chat_id = update.message.chat_id, text = "比如 '/set 44929'")
@@ -219,6 +225,12 @@ def mod(bot, update, chat_data, user_data):
 	bot.forward_message(chat_id, from_chat_id, message_id)
 	return
 
+def bot_chat(bot, update, text, id):
+	word = sm(text, ismod(id))
+	if word != -1:
+		update.message.reply_text(word)
+	return
+
 def main(bot, update, chat_data, user_data):
 	id = update.effective_user.id
 	text = update.effective_message.text
@@ -256,7 +268,7 @@ def main(bot, update, chat_data, user_data):
 	if ('糖' in text) or ('新人' in text):
 		bot_gift(bot, update, uid)
 		return
-#	bot.send_message(chat_id = update.message.chat_id, text = text)
+	bot_chat(bot, update, text, id)
 	return
 
 # 初始化
