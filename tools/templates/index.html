@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>幼兔娘调教工具合集</title>
+	<link rel="shortcut icon" href="static/favicon.ico">
+	<link rel="stylesheet" href="static/icon.css">
+	<link rel="stylesheet" href="static/material.indigo-pink.min.css">
+	<script defer src="static/material.min.js"></script>
+	<script src="static/jquery.min.js"></script>
+	<script src="static/common.js"></script>
+	<style>
+		.layout-transparent {
+			background: url('static/background.jpg') center / cover;
+			opacity: 0.9;
+		}
+		.layout-transparent .mdl-layout__header,
+		.layout-transparent .mdl-layout__drawer-button {
+			color: black;
+			opacity: 0.87;
+		}
+		.card-image.mdl-card {
+			width: 200px;
+			background: url('{{data['avatar']}}') center / cover;
+		}
+		.card-image > .mdl-card__actions {
+			height: 52px;
+			padding: 16px;
+			background: rgba(0, 0, 0, 0.2);
+		}
+		.card-image__filename {
+			color: #fff;
+			font-size: 14px;
+			font-weight: 500;
+		}
+	</style>
+</head>
+
+<body {% if data['verfied'] %}onload="expand();{%endif%}">
+
+<div class="layout-transparent mdl-layout mdl-js-layout">
+  <header class="mdl-layout__header mdl-layout__header--transparent">
+    <div class="mdl-layout__header-row">
+      <span class="mdl-layout-title">调教工具包</span>
+      <div class="mdl-layout-spacer"></div>
+      <nav class="mdl-navigation">
+		<a class="mdl-navigation__link" href="https://sor.ink/archives/5/" target="_blank">说明</a>
+        <a class="mdl-navigation__link" href="https://github.com/sulf1ron/u2/issues" target="_blank">反馈</a>
+        <a class="mdl-navigation__link" href="about.html">关于</a>
+        <a class="mdl-navigation__link" href="contact.html">联系</a>
+      </nav>
+    </div>
+  </header>
+  
+  <div class="mdl-layout__drawer">
+    <span style="left: 25px;" class="mdl-layout-title">调教工具包</span>
+	<div style="margin-left:auto;margin-right:auto;" class="card-image mdl-card mdl-shadow--2dp">
+		<div class="mdl-card__title mdl-card--expand"></div>
+		<div style="text-align:center;" class="mdl-card__actions">
+			<span class="card-image__filename">{{data['username']}}</span>
+		</div>
+	</div>
+
+    <nav class="mdl-navigation">
+
+		<button {% if data['verfied'] %}style="display:none"{%endif%} id="show-dialog" type="button" class="mdl-button mdl-js-button">认证</button>
+		<dialog style="width: 500px; height: 225px;" class="mdl-dialog">
+			<h4 class="mdl-dialog__title">Cookie 认证</h4>
+			<div class="mdl-dialog__content">
+				<p>
+					请输入 Cookie 以验证主人的身份。
+				</p>
+				<form id="verify">
+					<div style="width: 375px;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+						<div>
+							<textarea class="mdl-textfield__input" type="text" id="cookie" rows=3 name="nexusphp_u2"></textarea>
+							<label class="mdl-textfield__label" for="cookie">nexusphp_u2</label>
+							<button style="left:395px;" id="verify_button" class="mdl-button mdl-js-button mdl-button--raised" type="button" onclick="verify();">验证</button>
+							<div id="verify_loading" style="visibility:hidden" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>	
+							<div id="toast" class="mdl-js-snackbar mdl-snackbar">
+								<div class="mdl-snackbar__text"></div>
+								<button class="mdl-snackbar__action" type="button"></button>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+		</dialog>
+{% if data['verfied'] %}<!--{% endif %}
+		<script>
+			var dialog = document.querySelector('dialog');
+			var showDialogButton = document.querySelector('#show-dialog');
+			if (! dialog.showModal) {
+			  dialogPolyfill.registerDialog(dialog);
+			}
+			showDialogButton.addEventListener('click', function() {
+			  dialog.showModal();
+			});
+			dialog.querySelector('.close').addEventListener('click', function() {
+			  dialog.close();
+			});
+		</script>
+{% if data['verfied'] %}-->{% endif %}
+		
+		<a class="sweet_a mdl-navigation__link" {% if data['verfied'] %} href="javascript:void(0)" {% endif %}><i class="mdl-color-text--blue-grey-400 material-icons">attach_money</i>群疗区喂食</a>
+{% if not data['verfied'] %}<!--{% endif %}		<script>	
+			$(document).ready(function(){
+				$(".sweet_a").click(function(){
+				  $(".sweet_div").fadeIn();
+				});
+			});
+		</script>
+{% if not data['verfied'] %}-->{% endif %}	
+		<text class="mdl-navigation__link">其他功能敬请期待</text>
+		
+    </nav>
+  </div>
+</div>
+
+<div style="display:none" class="sweet_div" class="mdl-grid content">
+	<div style="position:fixed;left:300px;width:700px;height:200px;top:50px;opacity: 0.87;" class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+		<form id="settings">
+			<ul class="list-item mdl-list">
+				<div style="left:30px;width:150px;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+					<input class="mdl-textfield__input" type="number" min="1" max="50000" id="uc_sent" name="uc_sent">
+					<label class="mdl-textfield__label" for="uc_sent">发糖数量</label>
+					<span class="mdl-textfield__error">发糖范围: [1, 50000]</span>
+				</div>
+				<br>
+				<div style="left:30px;width:500px;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+					<input class="mdl-textfield__input" type="text" maxlength="70" id="message" name="message">
+					<label class="mdl-textfield__label" for="message">附言</label>
+				</div>
+				<button style="left:70px;" class="mdl-button" type="button" id="set_button" onclick="set();">设定</button>
+				<div id="set_toast" class="mdl-js-snackbar mdl-snackbar">
+					<div class="mdl-snackbar__text"></div>
+					<button class="mdl-snackbar__action" type="button"></button>
+				</div>
+			</ul>
+		</form>
+	</div>
+
+	<div style="position:fixed;left:300px;width:700px;height:400px;top:275px;opacity: 0.95;" class="mdl-color--white mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-grid">
+		<form id="chain">
+			<div style="left:30px;width:600px;" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+				<textarea class="mdl-textfield__input" type="text" id="chain" name="chain" rows="15"></textarea>
+				<label class="mdl-textfield__label" for="chain">发糖串</label>
+			</div>
+			<button style="left:-30px;top:20px;" type="button" class="mdl-button" onclick="start();" id="start_button">启动</button>
+			<div id="start_toast" class="mdl-js-snackbar mdl-snackbar">
+				<div class="mdl-snackbar__text"></div>
+				<button class="mdl-snackbar__action" type="button"></button>
+			</div>
+		</form>
+	</div>
+</div>
+</body>
+</html>
