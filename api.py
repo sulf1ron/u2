@@ -31,6 +31,14 @@ cookies['nexusphp_u2'] = conf.get('cookies', 'nexusphp_u2')
 def myuid():
 	return my
 
+def verify():
+	url = 'https://u2.dmhy.org'
+	page = requests.get(url, cookies = cookies)
+	if 'U2分享園@動漫花園' in page.text:
+		return 1
+	else:
+		return 0
+
 def online():
 	url = 'https://u2.dmhy.org'
 	try:
