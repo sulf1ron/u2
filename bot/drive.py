@@ -69,3 +69,16 @@ def sm(text, mod):
 			return row[8]
 		else:
 			return row[7]
+
+def mod_status(id):
+	sql = 'select mod_status from `user` where id = %s' % (id)
+	print(sql)
+	cursor.execute(sql)
+	status = cursor.fetchone()[0]
+	return status
+
+def update_mod_status(id, status):
+	sql = 'update `user` set mod_status = \'%s\' where id = %d' % (status, id)
+	print(sql)
+	cursor.execute(sql)
+	return

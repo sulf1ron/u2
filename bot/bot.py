@@ -17,8 +17,7 @@ import configparser
 from api import *
 from drive import *
 
-# 过程
-
+# def
 def ismod(id):
 	if id in tgconf['admin']:
 		return 1
@@ -198,7 +197,7 @@ def bot_avatar(bot, update, uid):
 	bot.sendPhoto(chat_id = update.message.chat_id, photo = avatar)
 	return
 
-def trick(bot, update, chat_data, user_data):
+def trick(bot, update, chat_data):
 	id = update.effective_user.id
 	try:
 		text = update.effective_message.text
@@ -218,11 +217,15 @@ def trick(bot, update, chat_data, user_data):
 		pass
 	return
 
-def mod(bot, update, chat_data, user_data):
-	from_chat_id = update.message.chat_id
-	chat_id = tgconf['group']
-	message_id = update.effective_message.message_id
-	bot.forward_message(chat_id, from_chat_id, message_id)
+def announce(bot, update, chat_data, notify):
+	fid = update.message.chat_id
+	cid = tgconf['group']
+	mid = update.effective_message.message_id
+	mid = bot.forward_message(cid, fid, mid).message_id
+	if notify:
+		bot.pin_chat_message(tgconf['group'], mid)
+	else:
+		bot.pin_chat_message(tgconf['group'], mid, disable_notification = True)
 	return
 
 def bot_chat(bot, update, text, id):
@@ -231,14 +234,51 @@ def bot_chat(bot, update, text, id):
 		update.message.reply_text(word)
 	return
 
-def main(bot, update, chat_data, user_data):
+def private(bot, update, chat_data, user_data):
 	id = update.effective_user.id
+	status = mod_status(id)
+	if status == 'trick':
+		trick(bot, update, chat_data)
+		update_mod_status(id, 'idle')
+		return
+	elif status == '!announce':
+		announce(bot, update, chat_data, 1)
+		update_mod_status(id, 'idle')
+		return
+	elif status == 'announce':
+		announce(bot, update, chat_data, 0)
+		update_mod_status(id, 'idle')
+		return
+
 	text = update.effective_message.text
+	if text == '# trick':
+		update_mod_status(id, 'trick')
+		return
+	elif text == '# !announce':
+		update_mod_status(id, '!announce')
+		return
+	elif text == '# announce':
+		update_mod_status(id, 'announce')
+		return
+
+def group(bot, update, chat_data, user_data):
+	id = update.effective_user.id
+	cid = update.message.chat_id
+	text = update.effective_message.text
+	if id == cid:
+		if ( (text[:3] == '```') and (text[-3:] == '```' ) ) and ismod(id):
+			trick(bot, update, chat_data, user_data)
+			return
+		if text[:3] != '幼兔娘':
+			if ismod(id):
+				mod(bot, update, chat_data, user_data)
+				return
+
 	if (('女' in text) and ('装' in text)) and ((('索' in text) and ('尔' in text)) or (('群' in text) and ('主' in text))):
 		bot.delete_message(update.message.chat_id, update.effective_message.message_id);
 		return
 	uid = id2uid(id)
-	if text[0:3] != '幼兔娘':
+	if text[:3] != '幼兔娘':
 		return
 	if uid == -1:
 		update.message.reply_text('主人请先告诉幼兔娘UID~')
@@ -288,29 +328,28 @@ dispatcher = updater.dispatcher
 
 tgconf['my'] = int(conf.get('TG', 'my'))
 tgconf['group'] = int(conf.get('TG', 'group'))
-tgconf['admin'] = bot.get_chat_administrators(tgconf['group'])
-tgconf['admin'] = [member.user.id for member in tgconf['admin']]
+tgconf['admin'] = [member.user.id for member in bot.get_chat_administrators(tgconf['group'])]
+
 print(tgconf['admin'])
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level = 200)
 
 # Handler
-trick_handler = MessageHandler(Filters.chat(tgconf['admin']), trick, pass_chat_data = True, pass_user_data = True)
-#mod_handler = MessageHandler(Filters.chat(my), mod, pass_chat_data = True, pass_user_data = True)
-main_handler = MessageHandler(Filters.text, main, pass_chat_data = True, pass_user_data = True, edited_updates = True)
+private_handler = MessageHandler(Filters.private, private, pass_chat_data = True, pass_user_data = True)
+group_handler = MessageHandler(Filters.text, group, pass_chat_data = True, pass_user_data = True, edited_updates = True)
 new_comer_handler = MessageHandler(Filters.status_update.new_chat_members, new_comer, pass_user_data = True)
 start_handler = CommandHandler('start', start)
 set_handler = CommandHandler('set', set, pass_args = True, pass_user_data = True)
 repm_handler = CommandHandler('repm', repm, pass_user_data = True)
 confirm_handler = CommandHandler('confirm', confirm, pass_args = True, pass_user_data = True)
 
-dispatcher.add_handler(trick_handler)
-#dispatcher.add_handler(mod_handler)
-dispatcher.add_handler(main_handler)
+dispatcher.add_handler(private_handler)
+dispatcher.add_handler(group_handler)
 dispatcher.add_handler(new_comer_handler)
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(set_handler)
 dispatcher.add_handler(repm_handler)
 dispatcher.add_handler(confirm_handler)
 
-updater.start_polling()
+if __name__ == '__main__':
+	updater.start_polling()
