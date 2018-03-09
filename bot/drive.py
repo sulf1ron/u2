@@ -9,6 +9,7 @@ UID: 44929
 
 import pymysql
 import configparser
+import random
 
 conf = configparser.ConfigParser()
 conf.read('secret.ini')
@@ -46,23 +47,25 @@ def old(uid):
 	return
 
 def sm(text, mod):
-	sql = 'select * from sm'
+	sql = 'select * from sm order by id'
 	cursor.execute(sql)
 	mist = cursor.fetchall()
 	pri = float('inf')
 	for i in range(len(mist)):
 		row = mist[i]
+		if row[9]:
+			continue
 		if row[4] in text:
-			if row[3] < pri:
+			if (row[3] < pri) & ( (row[5] and mod) or (random.random() < row[6]) ):
 				pri = row[3]
 				id = i
 	if 'id' not in locals():
 		return -1
 	row = mist[id]
 	if row[5] == 0:
-		return row[6]
+		return row[7]
 	else:
 		if mod:
-			return row[7]
+			return row[8]
 		else:
-			return row[6]
+			return row[7]
