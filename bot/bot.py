@@ -307,7 +307,7 @@ def group(bot, update, chat_data, user_data):
 	if '时薪' in text:
 		bot_salary(bot, update, uid, 'h')
 		return
-	if ('糖' in text) or ('新人' in text):
+	if ('糖' in text) or ('新人礼包' in text):
 		bot_gift(bot, update, uid)
 		return
 	bot_chat(bot, update, text, id)

@@ -11,6 +11,7 @@ import pymysql
 import configparser
 import random
 import time
+import re
 
 conf = configparser.ConfigParser()
 conf.read('secret.ini')
@@ -66,7 +67,8 @@ def sm(text, mod):
 		row = mist[i]
 		if row[9]:
 			continue
-		if row[4] in text:
+		match = re.match(row[4], text)
+		if match is not None:
 			if (row[3] < pri) & ( (row[5] and mod) or (random.random() < row[6]) ):
 				pri = row[3]
 				id = i
