@@ -14,6 +14,7 @@ import logging
 import random
 import requests
 import configparser
+import time
 from api import *
 from drive import *
 
@@ -236,21 +237,9 @@ def bot_chat(bot, update, text, id):
 
 def private(bot, update, chat_data, user_data):
 	id = update.effective_user.id
-	status = mod_status(id)
-	if status == 'trick':
-		trick(bot, update, chat_data)
-		update_mod_status(id, 'idle')
-		return
-	elif status == '!announce':
-		announce(bot, update, chat_data, 1)
-		update_mod_status(id, 'idle')
-		return
-	elif status == 'announce':
-		announce(bot, update, chat_data, 0)
-		update_mod_status(id, 'idle')
-		return
-
 	text = update.effective_message.text
+	blog = '(%s, private) %d: %s\n' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), id, text)
+	bot_log.write(blog)
 	if text == '# trick':
 		update_mod_status(id, 'trick')
 		return
@@ -260,19 +249,28 @@ def private(bot, update, chat_data, user_data):
 	elif text == '# announce':
 		update_mod_status(id, 'announce')
 		return
+	elif text == '# idle':
+		update_mod_status(id, 'idle')
+		return
+	
+	status = mod_status(id)
+	if status == 'trick':
+		trick(bot, update, chat_data)
+#		update_mod_status(id, 'idle')
+		return
+	elif status == '!announce':
+		announce(bot, update, chat_data, 1)
+#		update_mod_status(id, 'idle')
+		return
+	elif status == 'announce':
+		announce(bot, update, chat_data, 0)
+#		update_mod_status(id, 'idle')
+		return
 
 def group(bot, update, chat_data, user_data):
 	id = update.effective_user.id
 	cid = update.message.chat_id
 	text = update.effective_message.text
-	if id == cid:
-		if ( (text[:3] == '```') and (text[-3:] == '```' ) ) and ismod(id):
-			trick(bot, update, chat_data, user_data)
-			return
-		if text[:3] != '幼兔娘':
-			if ismod(id):
-				mod(bot, update, chat_data, user_data)
-				return
 
 	if (('女' in text) and ('装' in text)) and ((('索' in text) and ('尔' in text)) or (('群' in text) and ('主' in text))):
 		bot.delete_message(update.message.chat_id, update.effective_message.message_id);
@@ -280,6 +278,10 @@ def group(bot, update, chat_data, user_data):
 	uid = id2uid(id)
 	if text[:3] != '幼兔娘':
 		return
+	blog = '(%s, group) %d: %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), id, text)
+	print(blog)
+	bot_log.write(blog + '\n')
+	bot_log.flush()
 	if uid == -1:
 		update.message.reply_text('主人请先告诉幼兔娘UID~')
 		return
@@ -314,6 +316,8 @@ def group(bot, update, chat_data, user_data):
 # 初始化
 signal.signal(signal.SIGINT, dbexit)
 signal.signal(signal.SIGTERM, dbexit)
+
+bot_log = open('bot.log', 'a')
 
 conf = configparser.ConfigParser()
 conf.read('secret.ini')

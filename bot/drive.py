@@ -10,12 +10,23 @@ UID: 44929
 import pymysql
 import configparser
 import random
+import time
 
 conf = configparser.ConfigParser()
 conf.read('secret.ini')
 dbconf = dict(conf.items('DB'))
 db = pymysql.connect(dbconf['host'], dbconf['username'], dbconf['password'], dbconf['database'], charset = 'utf8')
 cursor = db.cursor()
+
+sql_log = open('sql.log', 'a')
+
+def execute(sql):
+	cursor.execute(sql)
+	slog = '(%s) %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), sql)
+	print(slog)
+	sql_log.write(slog + '\n')
+	sql_log.flush()
+	return
 
 def dbexit(sig, frame):
 	db.close()
@@ -72,13 +83,11 @@ def sm(text, mod):
 
 def mod_status(id):
 	sql = 'select mod_status from `user` where id = %s' % (id)
-	print(sql)
-	cursor.execute(sql)
+	execute(sql)
 	status = cursor.fetchone()[0]
 	return status
 
 def update_mod_status(id, status):
 	sql = 'update `user` set mod_status = \'%s\' where id = %d' % (status, id)
-	print(sql)
-	cursor.execute(sql)
+	execute(sql)
 	return
