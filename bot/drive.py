@@ -23,7 +23,7 @@ sql_log = open('sql.log', 'a')
 
 def execute(sql):
 	cursor.execute(sql)
-	slog = '(%s) %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), sql)
+	slog = '(%s, mysql) %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), sql)
 	print(slog)
 	sql_log.write(slog + '\n')
 	sql_log.flush()

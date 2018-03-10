@@ -25,7 +25,24 @@ def ismod(id):
 		return 1
 	else:
 		return 0
+	
+def reply(bot, update, text):
+	id = update.effective_user.id
+	log(bot, 'reply', id, text)
+	update.message.reply_text(text)
+	return
 
+def log(bot, mode, id, text):
+	uid = id2uid(id)
+	user = bot.get_chat_member(tgconf['group'], id).user
+	username = user.username
+	ts = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
+	blog = '(%s, %s) %s(%d, %d): %s' % (ts, mode, username, id, uid, text)
+	print(blog)
+	bot_log.write(blog + '\n')
+	bot_log.flush()
+	return
+	
 def start(bot, update):
 	bot.send_message(chat_id = update.message.chat_id, text = "请先用 '/set UID' 的格式告诉幼兔娘主人的UID~")
 	bot.send_message(chat_id = update.message.chat_id, text = "比如 '/set 44929'")
@@ -120,45 +137,45 @@ def bot_gift(bot, update, uid):
 	if newbie(uid):
 		status = transfer(uid, 2333, '幼兔娘的新人礼物w, 咱没钱了QAQ')
 		if status == 0:
-			update.message.reply_text('礼包已发送w')
+			reply(bot, update, '礼包已发送w')
 			old(uid)
 		elif status == -1:
-			update.message.reply_text('U2娘不理人家了QAQ')
+			reply(bot, update, 'U2娘不理人家了QAQ')
 		elif status == 2:
-			update.message.reply_text('请五分钟后再试~')
+			reply(bot, update, '请五分钟后再试~')
 	else:
-		update.message.reply_text('不要贪得无厌哼')
+		reply(bot, update, '不要贪得无厌哼')
 	return
 
 def bot_online(bot, update):
 	bot.send_chat_action(tgconf['group'], 'typing')
 	if online():
-		update.message.reply_text('神经元连结正常')
+		reply(bot, update, '神经元连结正常')
 	else:
-		update.message.reply_text('U2娘不理人家了QAQ')
+		reply(bot, update, 'U2娘不理人家了QAQ')
 	return
 
 def bot_uc(bot, update, uid):
 	bot.send_chat_action(tgconf['group'], 'typing')
 	data = profile(uid)
 	if data['code'] == -1:
-		update.message.reply_text('U2娘不理人家了QAQ')
+		reply(bot, update, 'U2娘不理人家了QAQ')
 	elif data['code'] == 0:
-		update.message.reply_text(str(data['uc']['gold']) + '金 ' + str(data['uc']['silver']) + '银 ' + str(data['uc']['copper']) + '铜$_$')
+		reply(bot, update, str(data['uc']['gold']) + '金 ' + str(data['uc']['silver']) + '银 ' + str(data['uc']['copper']) + '铜$_$')
 	elif data['code'] == 3:
-		update.message.reply_text('你这只傲娇不给幼兔娘看QAQ')
+		reply(bot, update, '你这只傲娇不给幼兔娘看QAQ')
 	return
 
 def bot_speed(bot, update, uid):
 	bot.send_chat_action(tgconf['group'], 'typing')
 	data = speed(uid)
 	if data['code'] == -1:
-		update.message.reply_text('U2娘不理人家了QAQ')
+		reply(bot, update, 'U2娘不理人家了QAQ')
 		return
 	if data['type'] == 0:
-		update.message.reply_text('秒收%sUCoin$_$' % (str(data['speed'])))
+		reply(bot, update, '秒收%sUCoin$_$' % (str(data['speed'])))
 	else:
-		update.message.reply_text('时薪%sUCoin QAQ' % (str(data['speed'])))
+		reply(bot, update, '时薪%sUCoin QAQ' % (str(data['speed'])))
 	return
 
 def bot_salary(bot, update, uid, type):
@@ -168,31 +185,31 @@ def bot_salary(bot, update, uid, type):
 		bot.send_message(chat_id = update.message.chat_id, text = 'U2娘不理人家了QAQ')
 		return
 	if type == 'h':
-		update.message.reply_text('时薪 %s UCoin' % (str(data['uc'])))
+		reply(bot, update, '时薪 %s UCoin' % (str(data['uc'])))
 	else:
-		update.message.reply_text('日薪 %s UCoin' % (str(data['uc'])))
+		reply(bot, update, '日薪 %s UCoin' % (str(data['uc'])))
 	return
 
 def bot_avatar(bot, update, uid):
 	bot.send_chat_action(tgconf['group'], 'upload_photo')
 	data = profile(uid)
 	if data['code'] == -1:
-		update.message.reply_text('U2娘不理人家了QAQ')
+		reply(bot, update, 'U2娘不理人家了QAQ')
 		return
 	url = data['avatar']
 	if url[0:19] == 'https://u2.dmhy.org':
 		photo = get(url)
 		if photo == -1:
-			update.message.reply_text('U2娘不理人家了QAQ')
+			reply(bot, update, 'U2娘不理人家了QAQ')
 			return
 	else:
 		try:
 			photo = requests.get(url, timeout = 3)
 		except:
-			update.message.reply_text('头像飞走了~')
+			reply(bot, update, '头像飞走了~')
 			return
 	if photo.status_code != 200:
-		update.message.reply_text('头像飞走了~')
+		reply(bot, update, '头像飞走了~')
 		return
 	open('avatar', 'wb').write(photo.content)
 	avatar = open('avatar', 'rb')
@@ -233,14 +250,13 @@ def announce(bot, update, chat_data, notify):
 def bot_chat(bot, update, text, id):
 	word = sm(text, ismod(id))
 	if word != -1:
-		update.message.reply_text(word)
+		reply(bot, update, word)
 	return
 
 def private(bot, update, chat_data, user_data):
 	id = update.effective_user.id
 	text = update.effective_message.text
-	blog = '(%s, private) %d: %s\n' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), id, text)
-	bot_log.write(blog)
+	log(bot, 'private', id, text)
 	if text == '# trick':
 		update_mod_status(id, 'trick')
 		return
@@ -280,15 +296,12 @@ def group(bot, update, chat_data, user_data):
 	uid = id2uid(id)
 	if text[:3] != '幼兔娘':
 		return
-	blog = '(%s, group) %d: %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), id, text)
-	print(blog)
-	bot_log.write(blog + '\n')
-	bot_log.flush()
+	log(bot, 'group', id, text)
 	if uid == -1:
-		update.message.reply_text('主人请先告诉幼兔娘UID~')
+		reply(bot, update, '主人请先告诉幼兔娘UID~')
 		return
 	if not confirmed(id):
-		update.message.reply_text('先去验明真身哼')
+		reply(bot, update, '先去验明真身哼')
 		return
 	text = text[4:]
 	if '赚分速度' in text:
