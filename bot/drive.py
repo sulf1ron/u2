@@ -22,11 +22,11 @@ cursor = db.cursor()
 sql_log = open('sql.log', 'a')
 
 def execute(sql):
-	cursor.execute(sql)
 	slog = '(%s, mysql) %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), sql)
 	print(slog)
 	sql_log.write(slog + '\n')
 	sql_log.flush()
+	cursor.execute(sql)
 	return
 
 def dbexit(sig, frame):
@@ -40,6 +40,31 @@ def id2uid(id):
 		return -1 # 未绑定UID
 	uid = cursor.fetchone()[0]
 	return uid
+
+def init(id, uid):
+	captcha = random.randint(1000, 9999)
+	sql = 'insert into user values (%s, %s, \'\', \'init\', 0, 1, %d) on duplicate key update uid = %s, confirmed = 0, captcha = %d' % (id, uid, captcha, uid, captcha)
+	execute(sql)
+	db.commit()
+	return captcha
+def select_captcha(id):
+	sql = 'select captcha from user where id = %s' % (id)
+	execute(sql)
+	captcha = str(cursor.fetchone()[0])
+	return captcha
+
+def update_confirmed(id):
+	sql = 'update user set confirmed = 1 where id = %s' % (id)
+	execute(sql)
+	db.commit()
+	return
+
+def update_captcha(id):
+	captcha = random.randint(1000, 9999)
+	sql = 'update user set captcha = %d where id = %d' % (captcha, id)
+	execute(sql)
+	db.commit()
+	return captcha
 
 def confirmed(id):
 	sql = 'select confirmed from user where id = %s' % (id)
@@ -56,6 +81,7 @@ def newbie(uid):
 def old(uid):
 	sql = 'update user set newbie = 0 where uid = %s' % (uid)
 	cursor.execute(sql)
+	db.commit()
 	return
 
 def sm(text, mod):
@@ -92,4 +118,5 @@ def mod_status(id):
 def update_mod_status(id, status):
 	sql = 'update `user` set mod_status = \'%s\' where id = %d' % (status, id)
 	execute(sql)
+	db.commit()
 	return

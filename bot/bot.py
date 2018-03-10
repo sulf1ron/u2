@@ -32,105 +32,105 @@ def reply(bot, update, text):
 	update.message.reply_text(text)
 	return
 
+def send(bot, update, chat_id, text):
+	log(bot, 'send', chat_id, text)
+	bot.send_message(chat_id, text)
+	return	
+	
 def log(bot, mode, id, text):
-	uid = id2uid(id)
-	user = bot.get_chat_member(tgconf['group'], id).user
-	username = user.username
 	ts = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
-	blog = '(%s, %s) %s(%d, %d): %s' % (ts, mode, username, id, uid, text)
+	if id < 0:
+#		group = bot.get_chat(id).group
+		blog = '(%s, %s) %s(%d): %s' % (ts, mode, '幼兔', id, text)
+	else:
+		uid = id2uid(id)
+		user = bot.get_chat_member(tgconf['group'], id).user
+		username = user.username
+		blog = '(%s, %s) %s(%d, %d): %s' % (ts, mode, username, id, uid, text)
 	print(blog)
 	bot_log.write(blog + '\n')
 	bot_log.flush()
 	return
 	
 def start(bot, update):
-	bot.send_message(chat_id = update.message.chat_id, text = "请先用 '/set UID' 的格式告诉幼兔娘主人的UID~")
-	bot.send_message(chat_id = update.message.chat_id, text = "比如 '/set 44929'")
+	send(bot, update, chat_id = update.message.chat_id, text = "请先用 '/set UID' 的格式告诉幼兔娘主人的UID~")
+	send(bot, update, chat_id = update.message.chat_id, text = "比如 '/set 44929'")
 	return
 
 def new_comer(bot, update, user_data):
 	id = update.effective_user.id
 	bot.restrict_chat_member(chat_id = tgconf['group'], user_id = id, can_send_messages = False, can_send_media_messages = False, can_send_other_messages = False, can_add_web_page_previews = False)
-	bot.send_message(chat_id = update.message.chat_id, text = '主人暂时被禁言了w\n请先按置顶信息告诉幼兔娘主人的UID~\n验证后会自动解禁的哦x')
+	send(bot, update, chat_id = update.message.chat_id, text = '主人暂时被禁言了w\n请先按置顶信息告诉幼兔娘主人的UID~\n验证后会自动解禁的哦x')
 	return
 
 def set(bot, update, args, user_data):
 	id = update.effective_user.id
 	cid = update.message.chat_id # chat_id
-	if (id2uid(id) != -1) and (confirmed(id)):
-		bot.send_message(chat_id = update.message.chat_id, text = '已经知道主人的身份啦，不用重复验证喵')
-		return
 	uid = int(' '.join(args))
+	log(bot, 'set', id, uid)
+	if (id2uid(id) != -1) and (confirmed(id)):
+		send(bot, update, chat_id = update.message.chat_id, text = '已经知道主人的身份啦，不用重复验证喵')
+		return
 	real = valid(uid)
 	if real == -1:
-		bot.send_message(chat_id = cid, text = 'U2娘不理人家了QAQ\n请稍候再试')
+		send(bot, update, chat_id = cid, text = 'U2娘不理人家了QAQ\n请稍候再试')
 		return
 	elif not real:
-		bot.send_message(chat_id = cid, text = '竟然敢欺骗本兔子, 人家不理你了哼!')
+		send(bot, update, chat_id = cid, text = '竟然敢欺骗本兔子, 人家不理你了哼!')
 		return
-	captcha = str(random.randint(1000, 9999))
-	sql = 'insert into user values (%s, %s, 0, 1, %s) on duplicate key update uid = %s, confirmed = 0, captcha = %s' % (id, uid, captcha, uid, captcha)
-	cursor.execute(sql)
-	db.commit()
+	captcha = init(id, uid)
 	status = pm(uid, '验证码', captcha, 'yes')
 	if status == -1:
-		bot.send_message(chat_id = update.message.chat_id, text = "U2娘不理人家了QAQ\n请稍候使用 '/repm' 再试")
+		send(bot, update, chat_id = update.message.chat_id, text = "U2娘不理人家了QAQ\n请稍候使用 '/repm' 再试")
 		return
-	bot.send_message(chat_id = cid, text = "验证码已经发送给主人了喵，快去U2娘那儿查收w\n请用 '/confirm 验证码' 的格式验明真身~")
+	send(bot, update, chat_id = cid, text = "验证码已经发送给主人了喵，快去U2娘那儿查收w\n请用 '/confirm 验证码' 的格式验明真身~")
 	return
 
 def repm(bot, update, user_data):
 	id = update.effective_user.id
+	log(bot, 'repm', id, '')
 	uid = id2uid(id)
 	cid = update.message.chat_id # chat_id
 	if uid == -1:
-		bot.send_message(chat_id = cid, text = '请先告诉幼兔娘主人的UID')
+		send(bot, update, chat_id = cid, text = '请先告诉幼兔娘主人的UID')
 		return
 	if confirmed(id):
-		bot.send_message(chat_id = update.message.chat_id, text = '已经知道主人的身份啦，不用重复验证喵')
+		send(bot, update, chat_id = update.message.chat_id, text = '已经知道主人的身份啦，不用重复验证喵')
 		return
-	sql = 'select captcha from user where id = %s' % (id)
-	cursor.execute(sql)
-	captcha = str(cursor.fetchone()[0])
+	captcha = select_captcha(id)
 	status = pm(uid, '验证码', captcha, 'yes')
 	if status == -1:
-		bot.send_message(chat_id = update.message.chat_id, text = "U2娘不理人家了QAQ\n请稍候使用 '/repm' 再试")
+		send(bot, update, chat_id = update.message.chat_id, text = "U2娘不理人家了QAQ\n请稍候使用 '/repm' 再试")
 		return
-	bot.send_message(chat_id = cid, text = '验证码已经发送给主人了喵，快去U2娘那儿查收w')
+	send(bot, update, chat_id = cid, text = '验证码已经发送给主人了喵，快去U2娘那儿查收w')
 	return
 
 def confirm(bot, update, args, user_data):
 	id = update.effective_user.id
 	name = update.effective_user.username
 	uid = id2uid(id)
+	captcha = ' '.join(args)
+	log(bot, 'confirm', id, captcha)
 	if uid == -1:
-		bot.send_message(chat_id = update.message.chat_id, text = '请先设置UID!')
+		send(bot, update, chat_id = update.message.chat_id, text = '请先设置UID!')
 		return
 	if confirmed(id):
-		bot.send_message(chat_id = update.message.chat_id, text = '幼兔娘早就认识主人了w')
+		send(bot, update, chat_id = update.message.chat_id, text = '幼兔娘早就认识主人了w')
 		return
-	captcha = ' '.join(args)
-	sql = 'select captcha from user where id = %s' % (id)
-	cursor.execute(sql)
-	real = str(cursor.fetchone()[0])
+	real = select_captcha(id)
 	if real == captcha:
-		sql = 'update user set confirmed = 1 where id = %s' % (id)
-		cursor.execute(sql)
-		db.commit()
-		bot.send_message(chat_id = update.message.chat_id, text = "身份验证成功，幼兔娘记住你啦\n主人自由了！快去愉快地玩耍吧w\n群聊里输入 '幼兔娘 新人礼包' 获取幼兔娘的福利一份~悄悄告诉你: 幼兔娘和U2娘的体位很相似的说~ 快去试试吧w")
+		update_confirmed(id)
+		send(bot, update, chat_id = update.message.chat_id, text = "身份验证成功，幼兔娘记住你啦\n主人自由了！快去愉快地玩耍吧w\n群聊里输入 '幼兔娘 新人礼包' 获取幼兔娘的福利一份~\n悄悄告诉你: 幼兔娘和U2娘的体位很相似的说~ 快去试试吧w")
 		bot.restrict_chat_member(chat_id = tgconf['group'], user_id = id, can_send_messages = True, can_send_media_messages = True, can_send_other_messages = True, can_add_web_page_previews = True)
-		bot.send_message(chat_id = tgconf['my'], text = '%s: %s' % (name, str(uid)))
+		send(bot, update, chat_id = tgconf['my'], text = '%s: %s' % (name, str(uid)))
 	else:
-		bot.send_message(chat_id = update.message.chat_id, text = '验证不通过')
-		captcha = str(random.randint(1000, 9999))
-		sql = 'update user set captcha = %s where id = %s' % (captcha, id)
-		cursor.execute(sql)
-		db.commit()
+		send(bot, update, chat_id = update.message.chat_id, text = '验证不通过')
+		captcha = update_captcha(id)
 		status = pm(int(uid), '验证码', captcha, 'yes')
 		if status == -1:
-			bot.send_message(chat_id = update.message.chat_id, text = "U2娘不理人家了QAQ\n请稍候使用 '/repm' 查收新生成的验证码")
+			send(bot, update, chat_id = update.message.chat_id, text = "U2娘不理人家了QAQ\n请稍候使用 '/repm' 查收新生成的验证码")
 		else:
-			bot.send_message(chat_id = update.message.chat_id, text = "请查收新生成的验证码并重试")
+			send(bot, update, chat_id = update.message.chat_id, text = "请查收新生成的验证码并重试")
 	return
 
 def bot_gift(bot, update, uid):
@@ -182,7 +182,7 @@ def bot_salary(bot, update, uid, type):
 	bot.send_chat_action(tgconf['group'], 'typing')
 	data = salary(uid, type)
 	if data['code'] == -1:
-		bot.send_message(chat_id = update.message.chat_id, text = 'U2娘不理人家了QAQ')
+		send(bot, update, chat_id = update.message.chat_id, text = 'U2娘不理人家了QAQ')
 		return
 	if type == 'h':
 		reply(bot, update, '时薪 %s UCoin' % (str(data['uc'])))
@@ -213,15 +213,15 @@ def bot_avatar(bot, update, uid):
 		return
 	open('avatar', 'wb').write(photo.content)
 	avatar = open('avatar', 'rb')
-	bot.sendPhoto(chat_id = update.message.chat_id, photo = avatar)
+	bot.send_photo(chat_id = update.message.chat_id, photo = avatar)
 	return
 
 def trick(bot, update, chat_data):
 	id = update.effective_user.id
 	try:
 		text = update.effective_message.text
-		if not (text is None):
-			bot.send_message(chat_id = tgconf['group'], text = text)
+		if text is not None:
+			send(bot, update, chat_id = tgconf['group'], text = text)
 	except:
 		pass
 	try:
@@ -353,10 +353,10 @@ tgconf['admin'] = [member.user.id for member in bot.get_chat_administrators(tgco
 
 print(tgconf['admin'])
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level = 200)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level = 20)
 
 # Handler
-private_handler = MessageHandler(Filters.private, private, pass_chat_data = True, pass_user_data = True)
+private_handler = MessageHandler((Filters.private & (~ Filters.command)), private, pass_chat_data = True, pass_user_data = True)
 group_handler = MessageHandler(Filters.text, group, pass_chat_data = True, pass_user_data = True, edited_updates = True)
 new_comer_handler = MessageHandler(Filters.status_update.new_chat_members, new_comer, pass_user_data = True)
 start_handler = CommandHandler('start', start)
