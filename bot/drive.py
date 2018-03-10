@@ -29,8 +29,7 @@ def execute(sql, *s):
 	print(slog)
 	sql_log.write(slog + '\n')
 	sql_log.flush()
-	cursor.execute(sql, s)
-	return
+	return cursor.execute(sql, s)
 
 def dbexit(sig, frame):
 	db.close()
@@ -38,52 +37,52 @@ def dbexit(sig, frame):
 	exit()
 
 def id2uid(id):
-	sql = 'select uid from user where id = %s' % (id)
-	if execute(sql) == 0:
+	sql = 'select uid from user where id = %s'
+	if execute(sql, id) == 0:
 		return -1 # 未绑定UID
 	uid = cursor.fetchone()[0]
 	return uid
 
 def init(id, uid):
 	captcha = random.randint(1000, 9999)
-	sql = 'insert into user values (%s, %s, \'\', \'init\', 0, 1, %d) on duplicate key update uid = %s, confirmed = 0, captcha = %d' % (id, uid, captcha, uid, captcha)
-	execute(sql)
+	sql = 'insert into user values (%s, %s, \'\', \'init\', 0, 1, %s) on duplicate key update uid = %s, confirmed = 0, captcha = %s'
+	execute(sql, id, uid, captcha, uid, captcha)
 	db.commit()
 	return captcha
 def select_captcha(id):
-	sql = 'select captcha from user where id = %s' % (id)
-	execute(sql)
+	sql = 'select captcha from user where id = %s'
+	execute(sql, id)
 	captcha = str(cursor.fetchone()[0])
 	return captcha
 
 def update_confirmed(id):
-	sql = 'update user set confirmed = 1 where id = %s' % (id)
-	execute(sql)
+	sql = 'update user set confirmed = 1 where id = %s'
+	execute(sql, id)
 	db.commit()
 	return
 
 def update_captcha(id):
 	captcha = random.randint(1000, 9999)
-	sql = 'update user set captcha = %d where id = %d' % (captcha, id)
-	execute(sql)
+	sql = 'update user set captcha = %d where id = %d'
+	execute(sql, captcha, id)
 	db.commit()
 	return captcha
 
 def confirmed(id):
-	sql = 'select confirmed from user where id = %s' % (id)
-	execute(sql)
+	sql = 'select confirmed from user where id = %s'
+	execute(sql, id)
 	confirmed = cursor.fetchone()[0]
 	return confirmed
 
 def newbie(uid):
-	sql = 'select newbie from user where uid = %s' % (uid)
-	execute(sql)
+	sql = 'select newbie from user where uid = %s'
+	execute(sql, uid)
 	newbie = cursor.fetchone()[0]
 	return newbie
 
 def old(uid):
-	sql = 'update user set newbie = 0 where uid = %s' % (uid)
-	execute(sql)
+	sql = 'update user set newbie = 0 where uid = %s'
+	execute(sql, uid)
 	db.commit()
 	return
 
@@ -113,13 +112,13 @@ def sm(text, mod):
 			return row[7]
 
 def mod_status(id):
-	sql = 'select mod_status from `user` where id = %s' % (id)
-	execute(sql)
+	sql = 'select mod_status from `user` where id = %s'
+	execute(sql, id)
 	status = cursor.fetchone()[0]
 	return status
 
 def update_mod_status(id, status):
-	sql = 'update `user` set mod_status = \'%s\' where id = %d' % (status, id)
-	execute(sql)
+	sql = 'update `user` set mod_status = \'%s\' where id = %d'
+	execute(sql, status, id)
 	db.commit()
 	return
