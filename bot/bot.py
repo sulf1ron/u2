@@ -12,9 +12,11 @@ import telegram
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 import logging
 import random
+import math
 import requests
 import configparser
 import time
+from jinja2 import Template
 from opencc import OpenCC
 from api import *
 from drive import *
@@ -249,8 +251,24 @@ def announce(bot, update, chat_data, notify):
 
 def bot_chat(bot, update, text, id):
 	word = sm(text, ismod(id))
-	if word != -1:
-		reply(bot, update, word)
+	if word == -1:
+		return
+	word = Template(word)
+	user = bot.get_chat_member(tgconf['group'], id).user
+	data = {}
+	data['tg'] = {}
+	data['tg']['id'] = user.username
+	name = []
+	if user.first_name is not None:
+		name.append(user.first_name)
+	if user.last_name is not None:
+		name.append(user.last_name)
+	data['tg']['nick'] = ' '.join(name)
+	data['u2'] = {}
+	data['u2']['uid'] = id2uid(id)
+	data['u2']['id'] = uid2id(data['u2']['uid'])
+	word = word.render(func = func, data = data)
+	reply(bot, update, word)
 	return
 
 def private(bot, update, chat_data, user_data):
@@ -353,7 +371,12 @@ tgconf['admin'] = [member.user.id for member in bot.get_chat_administrators(tgco
 
 print(tgconf['admin'])
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level = 20)
+func = conf.get('PY', 'func')
+funcn = eval(func)
+funcm = eval(func.replace('\'', ''))
+func = dict(zip(funcn, funcm))
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level = 200)
 
 # Handler
 private_handler = MessageHandler((Filters.private & (~ Filters.command)), private, pass_chat_data = True, pass_user_data = True)

@@ -127,7 +127,7 @@ def valid(uid):
 	else:
 		return 0 # 无效
 		
-def id(uid):
+def uid2id(uid):
 	data = profile(uid)
 	err = data['code']
 	if err == -1:

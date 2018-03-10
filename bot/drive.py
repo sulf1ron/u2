@@ -63,7 +63,7 @@ def update_confirmed(id):
 
 def update_captcha(id):
 	captcha = random.randint(1000, 9999)
-	sql = 'update user set captcha = %d where id = %d'
+	sql = 'update user set captcha = %s where id = %s'
 	execute(sql, captcha, id)
 	db.commit()
 	return captcha
@@ -95,7 +95,7 @@ def sm(text, mod):
 		row = mist[i]
 		if row[9]:
 			continue
-		match = re.match(row[4], text)
+		match = re.search(row[4], text)
 		if match is not None:
 			if (row[3] < pri) & ( (row[5] and mod) or (random.random() < row[6]) ):
 				pri = row[3]
@@ -118,7 +118,7 @@ def mod_status(id):
 	return status
 
 def update_mod_status(id, status):
-	sql = 'update `user` set mod_status = \'%s\' where id = %d'
+	sql = 'update `user` set mod_status = \'%s\' where id = %s'
 	execute(sql, status, id)
 	db.commit()
 	return
