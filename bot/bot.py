@@ -15,6 +15,7 @@ import random
 import requests
 import configparser
 import time
+from opencc import OpenCC
 from api import *
 from drive import *
 
@@ -271,6 +272,7 @@ def group(bot, update, chat_data, user_data):
 	id = update.effective_user.id
 	cid = update.message.chat_id
 	text = update.effective_message.text
+	text = t2s.convert(text)
 
 	if (('女' in text) and ('装' in text)) and ((('索' in text) and ('尔' in text)) or (('群' in text) and ('主' in text))):
 		bot.delete_message(update.message.chat_id, update.effective_message.message_id);
@@ -318,6 +320,8 @@ signal.signal(signal.SIGINT, dbexit)
 signal.signal(signal.SIGTERM, dbexit)
 
 bot_log = open('bot.log', 'a')
+
+t2s = OpenCC('t2s')
 
 conf = configparser.ConfigParser()
 conf.read('secret.ini')
