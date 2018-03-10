@@ -21,12 +21,15 @@ cursor = db.cursor()
 
 sql_log = open('sql.log', 'a')
 
-def execute(sql):
-	slog = '(%s, mysql) %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), sql)
+def execute(sql, *s):
+	if s == ():
+		slog = '(%s, sql) %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), sql)
+	else:
+		slog = '(%s, sql) %s, %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), sql, str(s))
 	print(slog)
 	sql_log.write(slog + '\n')
 	sql_log.flush()
-	cursor.execute(sql)
+	cursor.execute(sql, s)
 	return
 
 def dbexit(sig, frame):
@@ -36,7 +39,7 @@ def dbexit(sig, frame):
 
 def id2uid(id):
 	sql = 'select uid from user where id = %s' % (id)
-	if cursor.execute(sql) == 0:
+	if execute(sql) == 0:
 		return -1 # 未绑定UID
 	uid = cursor.fetchone()[0]
 	return uid
@@ -68,25 +71,25 @@ def update_captcha(id):
 
 def confirmed(id):
 	sql = 'select confirmed from user where id = %s' % (id)
-	cursor.execute(sql)
+	execute(sql)
 	confirmed = cursor.fetchone()[0]
 	return confirmed
 
 def newbie(uid):
 	sql = 'select newbie from user where uid = %s' % (uid)
-	cursor.execute(sql)
+	execute(sql)
 	newbie = cursor.fetchone()[0]
 	return newbie
 
 def old(uid):
 	sql = 'update user set newbie = 0 where uid = %s' % (uid)
-	cursor.execute(sql)
+	execute(sql)
 	db.commit()
 	return
 
 def sm(text, mod):
 	sql = 'select * from sm order by id'
-	cursor.execute(sql)
+	execute(sql)
 	mist = cursor.fetchall()
 	pri = float('inf')
 	for i in range(len(mist)):
