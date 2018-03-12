@@ -99,7 +99,7 @@ def repm(bot, update, user_data):
 	if confirmed(id):
 		send(bot, update, chat_id = update.message.chat_id, text = '已经知道主人的身份啦，不用重复验证喵')
 		return
-	captcha = select_captcha(id)
+	captcha = str(sql_select('captcha', 'user', 'id', id))
 	status = pm(uid, '验证码', captcha, 'yes')
 	if status == -1:
 		send(bot, update, chat_id = update.message.chat_id, text = "U2娘不理人家了QAQ\n请稍候使用 '/repm' 再试")
@@ -119,9 +119,9 @@ def confirm(bot, update, args, user_data):
 	if confirmed(id):
 		send(bot, update, chat_id = update.message.chat_id, text = '幼兔娘早就认识主人了w')
 		return
-	real = select_captcha(id)
+	real = str(sql_select('captcha', 'user', 'id', id))
 	if real == captcha:
-		update_confirmed(id)
+		sql_update('user', 'confirmed', 1, 'id', id)
 		send(bot, update, chat_id = update.message.chat_id, text = "身份验证成功，幼兔娘记住你啦\n主人自由了！快去愉快地玩耍吧w\n群聊里输入 '幼兔娘 新人礼包' 获取幼兔娘的福利一份~\n悄悄告诉你: 幼兔娘和U2娘的体位很相似的说~ 快去试试吧w")
 		bot.restrict_chat_member(chat_id = tgconf['group'], user_id = id, can_send_messages = True, can_send_media_messages = True, can_send_other_messages = True, can_add_web_page_previews = True)
 		send(bot, update, chat_id = tgconf['my'], text = '%s: %s' % (name, str(uid)))
@@ -271,10 +271,24 @@ def bot_chat(bot, update, text, id):
 	reply(bot, update, word)
 	return
 
+def bot_sm(bot, update, id, text):
+	status = get_sm_status(id)
+	if status == 'init':
+		num = sm_init(uid)
+		update_sm_num(id, num)
+		send(bot, update, chat_id = update.message.chat_id, text = '--- %d 号规则 ---' % (num))
+		send(bot, update, chat_id = update.message.chat_id, text = "规则名称：")
+		return
+	elif status == 'name':
+		return
+
 def private(bot, update, chat_data, user_data):
 	id = update.effective_user.id
 	text = update.effective_message.text
 	log(bot, 'private', id, text)
+	if (text == '幼兔娘 调教') or (select_sm_status(id) != 'init'):
+		bot_sm(bot, update, id, text)
+		return
 	if text == '# trick':
 		update_mod_status(id, 'trick')
 		return

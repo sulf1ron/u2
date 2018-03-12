@@ -22,6 +22,7 @@ cursor = db.cursor()
 sql_log = open('sql.log', 'a')
 
 def execute(sql, *s):
+	db.commit()
 	if s == ():
 		slog = '(%s, sql) %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), sql)
 	else:
@@ -43,23 +44,23 @@ def id2uid(id):
 	uid = cursor.fetchone()[0]
 	return uid
 
+def sql_select(name, table, column, value):
+	sql = 'select %s from %s where %s = %s' % (name, table, column, value)
+	execute(sql)
+	return cursor.fetchone()[0]
+
+def sql_update(table, column, value, ec, ev):
+	sql = 'update %s set %s = %s where %s = %s' % (table, column, '%s', ec, ev)
+	execute(sql, value)
+	db.commit()
+	return
+	
 def init(id, uid):
 	captcha = random.randint(1000, 9999)
 	sql = 'insert into user values (%s, %s, \'\', \'init\', 0, 1, %s) on duplicate key update uid = %s, confirmed = 0, captcha = %s'
 	execute(sql, id, uid, captcha, uid, captcha)
 	db.commit()
 	return captcha
-def select_captcha(id):
-	sql = 'select captcha from user where id = %s'
-	execute(sql, id)
-	captcha = str(cursor.fetchone()[0])
-	return captcha
-
-def update_confirmed(id):
-	sql = 'update user set confirmed = 1 where id = %s'
-	execute(sql, id)
-	db.commit()
-	return
 
 def update_captcha(id):
 	captcha = random.randint(1000, 9999)
@@ -118,7 +119,42 @@ def mod_status(id):
 	return status
 
 def update_mod_status(id, status):
-	sql = 'update `user` set mod_status = \'%s\' where id = %s'
+	sql = 'update `user` set mod_status = %s where id = %s'
 	execute(sql, status, id)
 	db.commit()
 	return
+
+def select_sm_status(id):
+	sql = 'select sm_status from `user` where id = %s'
+	execute(sql, id)
+	status = cursor.fetchone()[0]
+	return status
+
+def select_sm_num(id):
+	sql = 'select sm_num from `user` where id = %s'
+	execute(sql, id)
+	status = cursor.fetchone()[0]
+	return status
+
+def update_sm_status(id, status):
+	sql = 'update `user` set sm_status = %s where id = %s'
+	execute(sql, status, id)
+	db.commit()
+	return
+
+def update_sm_num(id, num):
+	sql = 'update `user` set sm_num = %s where id = %s'
+	execute(sql, status, num)
+	db.commit()
+	return
+
+def sm_num():
+	sql = 'select * from sm order by id'
+	return execute(sql)
+	
+def sm_init(uid):
+	num = sm_num()
+	sql = 'insert into sm (id, creator, disabled) values (%s, %s, 1)'
+	execute(sql, num, uid)
+	db.commit()
+	return num
