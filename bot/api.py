@@ -38,7 +38,7 @@ def online():
 
 def profile(uid):
 	data = {}
-	
+
 	if type(uid) != int:
 		data['code'] = 1 # uid 格式错误
 		return data
@@ -46,14 +46,14 @@ def profile(uid):
 	if not online():
 		data['code'] = -1 # U2 离线
 		return data
-		
+
 	url = 'https://u2.dmhy.org/userdetails.php?id=' + str(uid)
 	page = requests.get(url, cookies = cookies).text
 	soup = bs(page, 'lxml')
 	if ('无效的ID' in page) or ('没有该ID的用户' in page):
 		data['code'] = 2 # uid 不存在
 		return data
-		
+
 	data['id'] = soup.find_all('bdo', {'dir': 'ltr'})[1].text
 	if '用户想要保护其隐私' in page:
 		data['code'] = 3 # 隐私强
@@ -65,7 +65,7 @@ def profile(uid):
 		if data['avatar'][0:13] == '//u2.dmhy.org':
 			data['avatar'] = 'https:' + data['avatar']
 		return data
-	
+
 	data['code'] = 0 # 正常
 	data['join'] = datetime.datetime.strptime(soup.find_all('time')[0].text, '%Y-%m-%d %H:%M:%S')
 	data['last'] = datetime.datetime.strptime(soup.find_all('time')[2].text, '%Y-%m-%d %H:%M:%S')
@@ -116,7 +116,7 @@ def profile(uid):
 	data['uc']['silver'] = int((data['uc']['amount'] - data['uc']['gold'] * 10000) // 100)
 	data['uc']['copper'] = int(data['uc']['amount'] % 100)
 	return data
-	
+
 def valid(uid):
 	data = profile(uid)
 	err = data['code']
@@ -126,7 +126,7 @@ def valid(uid):
 		return 1 # 有效
 	else:
 		return 0 # 无效
-		
+
 def uid2id(uid):
 	data = profile(uid)
 	err = data['code']
@@ -151,13 +151,13 @@ def pm(uid, subject, body, save):
 	data['save'] = save
 	page = requests.post(url = url, cookies = cookies, data = data).text
 	return 0
-	
+
 def speed(uid):
 	data = {}
 	if not online():
 		data['code'] = -1 # -1: 离线
 		return data
-		
+
 	elif not valid(uid):
 		data['code'] = 1 # uid 不存在
 		return data
@@ -172,7 +172,7 @@ def speed(uid):
 		data['type'] = 1 # 穷逼
 		data['speed'] = round(recv['amount'] / (recv['interval'] / 3600), 3)
 	return data
-	
+
 def salary(uid, type):
 	data = {}
 	if not online():
@@ -187,7 +187,7 @@ def salary(uid, type):
 	recv = json.loads(page.text)
 	data['uc'] = recv['amount']
 	return data
-		
+
 def magic(id, utime, ur, dr, target):
 	if not online():
 		return -1
@@ -220,14 +220,17 @@ def magic(id, utime, ur, dr, target):
 	ucost = atof(soup.find('span', {'class': '\\"ucoin-notation\\"'})['title'][2:-2])
 	url = 'https://u2.dmhy.org/promotion.php?action=magic&torrent=' + str(id)
 	page = requests.post(url, cookies = cookies, data = data)
-	return str(ucost)
-	
+	return ucost
+
 def transfer(uid, amount, message):
-	data = {}
 	if not online():
 		return -1 # timeout
 	elif not valid(uid):
 		return 1 # uid 不存在
+	data = {'cachename': 'last_ucoin_transfer_44929'}
+	url = 'https://u2.dmhy.org/clearcache.php'
+	requests.post(url, cookies = cookies, data = data)
+	data = {}
 	data['event'] = '1003'
 	data['recv'] = uid
 	data['amount'] = amount

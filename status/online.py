@@ -2,45 +2,44 @@
 # -*- coding:utf-8 -*-
 
 import requests
+import json
 import time
-import configparser
-import eventlet
+import random
 
-cookies = dict(PHPSESSID='secret', nexusphp_u2='secret')
-eventlet.monkey_patch()
+clothes = ['Animal', 'Kids', 'Winter', 'Witch']
+host = ['hk', 'sh', 'jp', 'lon']
 
-while 1:
-	url = 'https://u2.dmhy.org/'
-	try:
-		with eventlet.Timeout(3):
-			t1 = time.time()
-			page = requests.get(url = url, cookies = cookies)
-			t2 = time.time()
-		if (page.status_code == 200) & (not ('Server Error Encountered' in page.text)):
-			status = 'online'
-			delay = str(round(t2 - t1, 2))
-		else:
-			status = 'offline'
-	except:
-		status = 'offline'
-	now = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
-	if 'delay' not in locals().keys():
-		delay = 'N/A'
-	if 'page' in locals().keys():
-		code = str(page.status_code)
+data = {}
+data['now'] = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
+data['delay'] = {}
+count = 0
+for loc in host:
+	url = 'https://%s.sor.moe/status.json' % (loc)
+	exec('%s = json.loads(requests.get(url).text)' % (loc))
+	if eval('%s[\'online\']' % (loc)):
+		data['delay'][loc] = eval('%s[\'delay\']' % (loc))
 	else:
-		code = 'N/A'
-	
-	conf = configparser.ConfigParser()
-	conf.add_section('U2')
-	conf.set('U2', 'time', now)
-	conf.set('U2', 'status', status)
-	conf.set('U2', 'delay', delay)
-	conf.set('U2', 'code', code)
-	
-	f = open('status.ini', 'w')
-	conf.write(f)
-	f.close()
-	
-	print('%s: %s, %s (%s)' % (now, status, delay, code))
-	time.sleep(15)
+		count += 1
+		data['delay'][loc] = -1
+
+if count == 0:
+	data['title'] = 'U2娘在线的呢'
+	data['text'] = '不要老是盯着人家看啦w'
+	f = open('/var/www/status/static/online.json')
+else:
+	data['title'] = 'U2娘开小差了'
+	data['text'] = '你催人家也没有用的啦w'
+	f = open('/var/www/status/static/offline.json')
+
+live = json.load(f)
+f.close()
+live['textures'] = ['textures/%s.png' % (random.choice(clothes))]
+f = open('/var/www/status/static/model.json', 'w')
+json.dump(live, f)
+f.close()
+
+data['rand'] = str(random.randint(10, 99))
+
+f = open('/var/www/status/status.json', 'w')
+json.dump(data, f)
+f.close()

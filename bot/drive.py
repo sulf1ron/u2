@@ -22,7 +22,6 @@ cursor = db.cursor()
 sql_log = open('sql.log', 'a')
 
 def execute(sql, *s):
-	db.commit()
 	if s == ():
 		slog = '(%s, sql) %s' % (time.strftime('%Y-%m-%d %H:%M:%S',time.localtime()), sql)
 	else:
@@ -54,11 +53,11 @@ def sql_update(table, column, value, ec, ev):
 	execute(sql, value)
 	db.commit()
 	return
-	
+
 def init(id, uid):
 	captcha = random.randint(1000, 9999)
-	sql = 'insert into user values (%s, %s, \'\', \'init\', 0, 1, %s) on duplicate key update uid = %s, confirmed = 0, captcha = %s'
-	execute(sql, id, uid, captcha, uid, captcha)
+	sql = 'insert into user values (%s, %s, \'\', \'init\', -1, 0, 1, %s, %s, %s) on duplicate key update uid = %s, confirmed = 0, captcha = %s'
+	execute(sql, id, uid, captcha, int(time.time()), 0, id, captcha)
 	db.commit()
 	return captcha
 

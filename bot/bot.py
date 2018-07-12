@@ -27,7 +27,7 @@ def ismod(id):
 		return 1
 	else:
 		return 0
-	
+
 def reply(bot, update, text):
 	id = update.effective_user.id
 	log(bot, 'reply', id, text)
@@ -37,8 +37,8 @@ def reply(bot, update, text):
 def send(bot, update, chat_id, text):
 	log(bot, 'send', chat_id, text)
 	bot.send_message(chat_id, text)
-	return	
-	
+	return
+
 def log(bot, mode, id, text):
 	ts = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
 	if id < 0:
@@ -53,7 +53,7 @@ def log(bot, mode, id, text):
 	bot_log.write(blog + '\n')
 	bot_log.flush()
 	return
-	
+
 def start(bot, update):
 	send(bot, update, chat_id = update.message.chat_id, text = "请先用 '/set UID' 的格式告诉幼兔娘主人的UID~")
 	send(bot, update, chat_id = update.message.chat_id, text = "比如 '/set 44929'")
@@ -218,6 +218,28 @@ def bot_avatar(bot, update, uid):
 	bot.send_photo(chat_id = update.message.chat_id, photo = avatar)
 	return
 
+def bot_showup(bot, update, id, uid):
+	bot.send_chat_action(tgconf['group'], 'typing')
+	last = sql_select('showup_date', 'user', 'id', id)
+	now = int(time.time())
+	sl = time.localtime(last)
+	sn = time.localtime(now)
+	if time.strftime("%Y-%m-%d", sl) == time.strftime("%Y-%m-%d", sn):
+		reply(bot, update, '今天已经签过到了，请明天再来~')
+	else:
+		sql_update('user', 'showup_date', now, 'id', id)
+		s1 = time.localtime(last + 86400)
+		if time.strftime("%Y-%m-%d", s1) == time.strftime("%Y-%m-%d", sn):
+			len = sql_select('showup_length', 'user', 'id', id) + 1
+		else:
+			len = 1
+		sql_update('user', 'showup_length', len, 'id', id)
+		sweet = random.randint(len * 100 - 50, len * 100)
+		transfer(uid, sweet, '每日签到奖励')
+		text = '已签到%d天，随机奖励%dUC！' % (len, sweet)
+		reply(bot, update, text)
+	return
+
 def trick(bot, update, chat_data):
 	id = update.effective_user.id
 	try:
@@ -250,6 +272,7 @@ def announce(bot, update, chat_data, notify):
 	return
 
 def bot_chat(bot, update, text, id):
+	bot.send_chat_action(tgconf['group'], 'typing')
 	word = sm(text, ismod(id))
 	if word == -1:
 		return
@@ -301,7 +324,7 @@ def private(bot, update, chat_data, user_data):
 	elif text == '# idle':
 		update_mod_status(id, 'idle')
 		return
-	
+
 	status = mod_status(id)
 	if status == 'trick':
 		trick(bot, update, chat_data)
@@ -322,9 +345,9 @@ def group(bot, update, chat_data, user_data):
 	text = update.effective_message.text
 	text = t2s.convert(text)
 
-	if (('女' in text) and ('装' in text)) and ((('索' in text) and ('尔' in text)) or (('群' in text) and ('主' in text))):
-		bot.delete_message(update.message.chat_id, update.effective_message.message_id);
-		return
+#	if (('女' in text) and ('装' in text)) and ((('索' in text) and ('尔' in text)) or (('群' in text) and ('主' in text))):
+#		bot.delete_message(update.message.chat_id, update.effective_message.message_id);
+#		return
 	uid = id2uid(id)
 	if text[:3] != '幼兔娘':
 		return
@@ -356,6 +379,9 @@ def group(bot, update, chat_data, user_data):
 		return
 	if ('糖' in text) or ('新人礼包' in text):
 		bot_gift(bot, update, uid)
+		return
+	if ('签到' in text) or ('打卡' in text):
+		bot_showup(bot, update, id, uid)
 		return
 	bot_chat(bot, update, text, id)
 	return

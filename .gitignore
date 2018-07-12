@@ -106,3 +106,5 @@ settings.ini
 # log
 sweet.log
 tools/index.html
+bot/u2bot.sql
+status/secret.ini
